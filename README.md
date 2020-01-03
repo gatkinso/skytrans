@@ -1,2 +1,3 @@
 # skyproto
-Skywire transport message
+
+Shared Skywire message transport.
