@@ -46,6 +46,10 @@ endif(MSVC)
 find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
+find_package(gRPC CONFIG REQUIRED)
+set(_GRPC_GRPCPP_UNSECURE gRPC::grpc++_unsecure)
+set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
+
 if(UNIX)
     add_definitions(-DAPPLE)
 endif(UNIX)

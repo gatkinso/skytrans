@@ -32,4 +32,4 @@
 *.app
 
 # Build dir
-build/
+__build*/
