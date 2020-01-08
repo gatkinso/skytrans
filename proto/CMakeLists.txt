@@ -26,7 +26,7 @@ if(UNIX)
 endif(UNIX)
 
 foreach(PROTO ${PROTO_FILES})
-    #cpp
+    #cpp Protobuf
     add_custom_command(
         OUTPUT  ${PROTO_DIR}/${PROTO}.pb.h
                 ${PROTO_DIR}/${PROTO}.pb.cc
@@ -39,6 +39,22 @@ foreach(PROTO ${PROTO_FILES})
     set(PROTOCPP_RESULTS ${PROTOCPP_RESULTS}
         ${PROTO_DIR}/${PROTO}.pb.cc
         ${PROTO_DIR}/${PROTO}.pb.h
+    )
+
+    #cpp gRPC
+    add_custom_command(
+        OUTPUT  ${PROTO_DIR}/${PROTO}.grpc.pb.h
+                ${PROTO_DIR}/${PROTO}.grpc.pb.cc
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
+        COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+        ARGS    ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
+                --grpc_out=${PROTO_DIR}
+                --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
+                --plugin=protoc-gen-grpc=c:/Users/geoffrey/apps/grpc-debug/bin/grpc_cpp_plugin.exe
+    )
+    set(PROTOCPPgrpc_RESULTS ${PROTOCPPgrpc_RESULTS}
+        ${PROTO_DIR}/${PROTO}.grpc.pb.cc
+        ${PROTO_DIR}/${PROTO}.grpc.pb.h
     )
 
     #python
@@ -59,7 +75,7 @@ foreach(PROTO ${PROTO_FILES})
         OUTPUT  ${PROTO_DIR}/${PROTO}.pb.go
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
         COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-        ARGS    -I=${CMAKE_CURRENT_SOURCE_DIR} --go_out=${PROTO_DIR}
+        ARGS    --proto_path=${CMAKE_CURRENT_SOURCE_DIR} --go_out=${PROTO_DIR}
                 ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
     )
     set(PROTOGO_RESULTS ${PROTOGO_RESULTS}
@@ -70,10 +86,10 @@ endforeach(PROTO)
 add_custom_target(runPy ALL DEPENDS ${PROTOPY_RESULTS})
 add_custom_target(runGo ALL DEPENDS ${PROTOGO_RESULTS})
 
-add_library(${TARGETNAME} STATIC ${PROTOCPP_RESULTS})
+add_library(${TARGETNAME} STATIC ${PROTOCPP_RESULTS} ${PROTOCPPgrpc_RESULTS})
 
 if(MSVC)
     target_compile_options(${TARGETNAME} PRIVATE "/wd4800")
 endif(MSVC)
 
-target_link_libraries(${TARGETNAME} ${PROTOBUF_LIBRARIES})
+target_link_libraries(${TARGETNAME}  ${_GRPC_GRPCPP_UNSECURE} ${PROTOBUF_LIBRARIES})
