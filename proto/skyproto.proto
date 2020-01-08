@@ -15,7 +15,7 @@
 
 syntax = "proto3";
 
-package skyloupe.skyproto;
+package skyloupe.skywireproto;
 
 import "stencil.proto";
 
