@@ -50,7 +50,7 @@ foreach(PROTO ${PROTO_FILES})
         ARGS    ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
                 --grpc_out=${PROTO_DIR}
                 --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
-                --plugin=protoc-gen-grpc=c:/Users/geoffrey/apps/grpc-debug/bin/grpc_cpp_plugin.exe
+                --plugin=protoc-gen-grpc=${_GRPC_CPP_PLUGIN_EXECUTABLE}
     )
     set(PROTOCPPgrpc_RESULTS ${PROTOCPPgrpc_RESULTS}
         ${PROTO_DIR}/${PROTO}.grpc.pb.cc
