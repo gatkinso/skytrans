@@ -15,29 +15,27 @@
 
 syntax = "proto3";
 
-package skyloupe.skywireproto;
+package skyloupe.skytrans;
 
+import "google/protobuf/any.proto";
 import "stencil.proto";
 
-service Skywire {
-    rpc Generate(SkywireRequest) returns (SkywireResponse) {}
+service Transport {
+    rpc Exchange(Request) returns (Response) {}
 }
 
-message RequestMetadata {
-    uint64 id = 10;
-    TimeStamp time = 20;
-    String customer = 30;
+message Metadata {
+    Stencil data = 10;
 }
 
-message SkywireRequest {
-    RequestMetadata meta = 10;
-
-    Stencil msg_spec = 100;
-    Stencil lang_spec = 110;
+message Request {
+    Metadata meta = 10;
+    Stencil payload = 100;
+    repeated google.protobuf.Any impl = 1000;
 }
 
-message SkywireResponse {
-    RequestMetadata meta = 10;
-
-    Stencil data = 100;
+message Response {
+    Metadata meta = 10;
+    Stencil payload = 100;
+    repeated google.protobuf.Any impl = 1000;
 }

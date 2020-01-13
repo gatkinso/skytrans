@@ -16,6 +16,8 @@ cmake_minimum_required(VERSION 3.5)
 
 project(skyproto)
 
+include (CTest)
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -50,6 +52,9 @@ find_package(gRPC CONFIG REQUIRED)
 set(_GRPC_GRPCPP_UNSECURE gRPC::grpc++_unsecure)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
 
+enable_testing()
+find_package(GTest REQUIRED)
+
 if(UNIX)
     add_definitions(-DAPPLE)
 endif(UNIX)
@@ -59,4 +64,6 @@ if(UNIX AND NOT APPLE)
     add_definitions(-DLINUX)
 endif(UNIX AND NOT APPLE)
 
-add_subdirectory(proto)
+add_subdirectory(lib)
+add_subdirectory(bin/client)
+add_subdirectory(tests/unit_tests)

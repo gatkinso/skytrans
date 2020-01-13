@@ -17,6 +17,7 @@ set(TARGETNAME skyproto)
 
 set(PROTO_FILES
     stencil
+    transport
 )
 
 set(PROTO_DIR "${PROJECT_BINARY_DIR}/skyproto")
