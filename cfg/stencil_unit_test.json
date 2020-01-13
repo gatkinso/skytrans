@@ -1,0 +1,13 @@
+{
+    "stringValues": {
+        "namespace": "testspace",
+        "classname": "MyTestClass",
+        "language": "c++"
+    },
+    "intValues":{
+        "index":2
+    },
+    "boolValues":{
+        "generate":true
+    },
+}

@@ -15,14 +15,14 @@
 
 syntax = "proto3";
 
-package skyloupe.skywireproto;
+package skyloupe.skytrans;
 
-message Member
-{
-    string type       = 10;
-    string name       = 20;
-    uint32 endian     = 30;
-}
+//message Member
+//{
+//    string type       = 10;
+//    string name       = 20;
+//    uint32 endian     = 30;
+//}
 
 message Stencil
 {
@@ -30,8 +30,8 @@ message Stencil
     map<string, int32> int_values     = 200;
     map<string, bool> bool_values     = 300;
 
-    map<uint32, Member> members       = 400;
+    //map<uint32, Member> members       = 400;
 
-    repeated string includes          = 1000;
-    repeated string native_types      = 1001; 
+    //repeated string includes          = 1000;
+    //repeated string native_types      = 1001;
 }
