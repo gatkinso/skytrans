@@ -1,3 +1,3 @@
-# skyproto
+# skytrans
 
 Shared Skywire message transport.

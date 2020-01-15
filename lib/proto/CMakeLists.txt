@@ -13,14 +13,14 @@
 #  permissions and limitations under the License.
 #
 
-set(TARGETNAME skyproto)
+set(TARGETNAME skytrans)
 
 set(PROTO_FILES
     stencil
     transport
 )
 
-set(PROTO_DIR "${PROJECT_BINARY_DIR}/skyproto")
+set(PROTO_DIR "${PROJECT_BINARY_DIR}/skytrans")
 
 if(UNIX)
     file(MAKE_DIRECTORY ${PROTO_DIR}) 
