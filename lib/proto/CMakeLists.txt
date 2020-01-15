@@ -16,6 +16,7 @@
 set(TARGETNAME skytrans)
 
 set(PROTO_FILES
+    example
     stencil
     transport
 )

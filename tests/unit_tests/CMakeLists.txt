@@ -20,7 +20,8 @@ include_directories(
     ${PROJECT_BINARY_DIR}/skytrans)
 
 set(UNIT_TESTS
-    stencil_unit_test.cpp)
+    stencil_unit_test.cpp
+    transport_unit_test.cpp)
 
 set(UNIT_TEST_JSON stencil_unit_test.json)
 

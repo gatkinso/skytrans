@@ -38,12 +38,18 @@ protected:
     std::string includes_[3];
 };
 
-TEST_F(StencilUnitTest, Serialize_Json)
+TEST_F(StencilUnitTest, SerDes_Json)
 {
     std::string json_str;
-    google::protobuf::util::Status ret = google::protobuf::util::MessageToJsonString(stencil_proto_, &json_str);
+    auto ret = google::protobuf::util::MessageToJsonString(stencil_proto_, &json_str);
 
     ASSERT_EQ(google::protobuf::util::Status::OK, ret);
+
+    skyloupe::skytrans::Stencil stencil_out;
+    ret = google::protobuf::util::JsonStringToMessage(json_str, &stencil_out);
+
+    ASSERT_EQ(google::protobuf::util::Status::OK, ret);
+    ASSERT_TRUE(google::protobuf::util::MessageDifferencer::Equivalent(stencil_out, stencil_proto_));
 }
 
 TEST_F(StencilUnitTest, read_file)
@@ -333,122 +339,3 @@ TEST_F(StencilUnitTest, clear)
 #endif
 }
 
-#ifndef SKYTRANS_PORT
-TEST_F(StencilUnitTest, get_value_repeated)
-{
-    skyloupe::Stencil stencil;
-
-    bool rc = stencil.read_file("stencil_unit_test.json");
-    ASSERT_EQ(true, rc);
-
-    std::vector<std::string> values = stencil.get_value("includes", "NOT FOUND");
-
-    ASSERT_TRUE(values.size() == 3);
-
-    ASSERT_TRUE(values[0] == "<string>");
-    ASSERT_TRUE(values[1] == "<list>");
-    ASSERT_TRUE(values[2] == "<map>");
-}
-
-TEST_F(StencilUnitTest, clear_key)
-{
-    skyloupe::Stencil stencil;
-
-    bool rc = stencil.read_file("stencil_unit_test.json");
-    ASSERT_EQ(true, rc);
-
-    std::vector<std::string> values = stencil.get_value("includes", "NOT FOUND");
-
-    ASSERT_TRUE(values.size() == 3);
-
-    rc = stencil.clear_key("includes");
-    ASSERT_EQ(true, rc);
-
-    values = stencil.get_value("includes", "NOT FOUND");
-
-    ASSERT_TRUE(values.size() == 1);
-    ASSERT_TRUE(values[0] == "NOT FOUND");
-}
-
-TEST_F(StencilUnitTest, set_value_repeated)
-{
-    skyloupe::Stencil stencil;
-
-    bool rc = stencil.read_file("stencil_unit_test.json");
-    ASSERT_EQ(true, rc);
-
-    rc = stencil.set_value("includes", "<new.h>");
-    ASSERT_EQ(true, rc);
-
-    std::vector<std::string> values = stencil.get_value("includes", "NOT FOUND");
-
-    ASSERT_TRUE(values.size() == 4);
-
-    ASSERT_TRUE(values[0] == "<string>");
-    ASSERT_TRUE(values[1] == "<list>");
-    ASSERT_TRUE(values[2] == "<map>");
-    ASSERT_TRUE(values[3] == "<new.h>");
-}
-
-TEST_F(StencilUnitTest, set_get_value_member)
-{
-    skyloupe::Stencil stencil;
-
-    bool rc = stencil.read_file("stencil_unit_test.json");
-    ASSERT_EQ(true, rc);
-
-    rc = stencil.set_value_member(100, "float", "m_myfloat", SW_BIG_ENDIAN_FLAG);
-    ASSERT_EQ(true, rc);
-
-    std::string type;
-    std::string name;
-    uint32_t endian;
-    rc = stencil.get_value_member(100, type, name, endian);
-
-    ASSERT_TRUE(rc);
-
-    ASSERT_EQ(type, "float");
-    ASSERT_EQ(name, "m_myfloat");
-    ASSERT_EQ(endian, SW_BIG_ENDIAN_FLAG);
-}
-
-TEST_F(StencilUnitTest, clear_key_member)
-{
-    skyloupe::Stencil stencil;
-
-    bool rc = stencil.read_file("stencil_unit_test.json");
-    ASSERT_EQ(true, rc);
-
-    rc = stencil.set_value_member(100, "float", "m_myfloat", SW_BIG_ENDIAN_FLAG);
-    ASSERT_EQ(true, rc);
-
-    rc = stencil.clear_key_member(100);
-
-    ASSERT_TRUE(rc);
-
-    std::string type;
-    std::string name;
-    uint32_t endian;
-    rc = stencil.get_value_member(100, type, name, endian);
-
-    ASSERT_FALSE(rc);
-}
-#endif
-
-//TEST_F(StencilUnitTest, GetString)
-//{
-//    skyloupe::Stencil stencil;
-//
-//    stencil.set_value_string("language", "C++");
-//    stencil.set_value_string("namespace", "testspace");
-//    stencil.set_value_string("classname", "TestClass");
-//    stencil.set_value("includes", "<header1.h>");
-//    stencil.set_value("includes", "<header2.h>");
-//    stencil.set_value("includes", "<header3.h>");
-//
-//    bool rc = stencil.set_value_member(100, "float", "m_myfloat", SW_LITTLE_ENDIAN_FLAG);
-//    rc = stencil.set_value_member(200, "int16_t", "m_myint", SW_LITTLE_ENDIAN_FLAG);
-//
-//    rc = stencil.write_file("stencil_unit_test_out.json");
-//    ASSERT_EQ(true, rc);
-//}
