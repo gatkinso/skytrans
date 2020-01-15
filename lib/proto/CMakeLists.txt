@@ -13,7 +13,7 @@
 #  permissions and limitations under the License.
 #
 
-set(TARGETNAME skytrans)
+set(TARGETNAME skytransproto)
 
 set(PROTO_FILES
     example
@@ -21,7 +21,7 @@ set(PROTO_FILES
     transport
 )
 
-set(PROTO_DIR "${PROJECT_BINARY_DIR}/skytrans")
+set(PROTO_DIR "${PROJECT_BINARY_DIR}/${TARGETNAME}")
 
 if(UNIX)
     file(MAKE_DIRECTORY ${PROTO_DIR}) 

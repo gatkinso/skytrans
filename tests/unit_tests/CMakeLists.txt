@@ -17,7 +17,7 @@ set(TARGETNAME unit_tests)
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_BINARY_DIR}/skytrans)
+    ${PROJECT_BINARY_DIR}/skytransproto)
 
 set(UNIT_TESTS
     stencil_unit_test.cpp
@@ -31,7 +31,7 @@ target_link_libraries(${TARGETNAME} stencil GTest::GTest GTest::Main ${PLATFORM_
 
 gtest_discover_tests(${TARGETNAME} TEST_PREFIX skytrans_unit_test:)
 
-add_dependencies(${TARGETNAME} stencil skytrans)
+add_dependencies(${TARGETNAME} stencil skytransproto)
 
 add_custom_command(
     TARGET ${TARGETNAME} POST_BUILD
