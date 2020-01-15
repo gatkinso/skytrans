@@ -7,4 +7,4 @@ set(_SOURCES client++.cpp
 
 add_library(${TARGETNAME} ${_SOURCES})
 
-target_link_libraries(${TARGETNAME} skyproto ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
+target_link_libraries(${TARGETNAME} skytrans ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})

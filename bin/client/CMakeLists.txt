@@ -7,10 +7,10 @@ set(_SOURCES main.cpp)
 set(_INC_DIRS ${TARGET_INC_DIR}
               ${PROJECT_SOURCE_DIR}/include/skytrans
               ${PROJECT_SOURCE_DIR}/include/stencil
-              ${PROJECT_BINARY_DIR}/skyproto)
+              ${PROJECT_BINARY_DIR}/skytrans)
 
 include_directories(${TARGETNAME} ${_INC_DIRS})
 
 add_executable(${TARGETNAME} ${_SOURCES})
 
-target_link_libraries(${TARGETNAME} stencil skyproto ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
+target_link_libraries(${TARGETNAME} stencil skytrans ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
