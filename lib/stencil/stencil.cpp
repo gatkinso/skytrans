@@ -457,60 +457,6 @@ bool Stencil::clear_key_bool(const::std::string& key)
     return true;
 }
 
-// bool Stencil::set_value_member(uint32_t key, const std::string& type, const std::string& name, uint32_t endian)
-// {
-//     if (stencil_proto_.IsInitialized() == false)
-//     {
-//         return false;
-//     }
-
-//     auto iter = stencil_proto_.mutable_members()->find(key);
-//     if (iter == stencil_proto_.members().end())
-//     {
-//         (*stencil_proto_.mutable_members())[key].set_type(type);
-//         (*stencil_proto_.mutable_members())[key].set_name(name);
-//         (*stencil_proto_.mutable_members())[key].set_endian(endian);
-//     }
-//     else
-//     {
-//         iter->second.set_type(type);
-//         iter->second.set_name(name);
-//         iter->second.set_endian(endian);
-//     }
-
-//     return true;
-// }
-
-// bool Stencil::get_value_member(uint32_t key, std::string& type_val, std::string& name_val, uint32_t& endian_val)
-// {
-//     if (stencil_proto_.IsInitialized() == false)
-//     {
-//         return false;
-//     }
-
-//     auto iter = stencil_proto_.mutable_members()->find(key);
-//     if (iter == stencil_proto_.members().end())
-//     {
-//         return false;
-//     }
-//     else
-//     {
-//         type_val = iter->second.type();
-//         name_val = iter->second.name();
-//         endian_val = iter->second.endian();
-//     }
-
-//     return true;
-// }
-
-// bool Stencil::clear_key_member(uint32_t key)
-// {
-//     size_t ret = stencil_proto_.mutable_members()->erase(key);
-//     if (ret == 0)
-//         return false;
-//     return true;
-// }
-
 }
 
 

@@ -39,20 +39,17 @@ public:
     virtual std::string get_value_string(const::std::string& key, const std::string nomatch = "@NOTFOUND");
     virtual bool get_value_int(const::std::string& key, int& value, int nomatch = 0);
     virtual bool get_value_bool(const::std::string& key, bool& value, bool = false);
-    //virtual bool get_value_member(uint32_t key, std::string& type_val, std::string& name_val, uint32_t& endian);
 
     virtual bool set_value(const::std::string& key, const std::string& value);
     virtual bool set_value_string(const::std::string& key, const std::string& value);
     virtual bool set_value_int(const::std::string& key, int value);
     virtual bool set_value_bool(const::std::string& key, bool value);
-    //virtual bool set_value_member(uint32_t key, const std::string& type, const std::string& name, uint32_t endian_val);
 
     virtual bool clear();
     virtual bool clear_key(const::std::string& key);
     virtual bool clear_key_string(const::std::string& key);
     virtual bool clear_key_int(const::std::string& key);
     virtual bool clear_key_bool(const::std::string& key);
-    //virtual bool clear_key_member(uint32_t key);
 
     const skyloupe::skytrans::Stencil& get_proto() const { return stencil_proto_; }
     skyloupe::skytrans::Stencil& get_proto_ref() { return stencil_proto_; }

@@ -19,7 +19,7 @@ set(TARGET_INC_DIR ${PROJECT_SOURCE_DIR}/include/${TARGETNAME})
 
 set(_INC_DIRS ${TARGET_INC_DIR}
               ${PROJECT_SOURCE_DIR}/include/${TARGETNAME}
-              ${PROJECT_BINARY_DIR}/skytrans)
+              ${PROJECT_BINARY_DIR}/skytransproto)
 
 include_directories(${TARGETNAME} ${_INC_DIRS})
 
@@ -29,9 +29,9 @@ set(_HEADERS ${TARGET_INC_DIR}/stencil.h)
 
 add_library(${TARGETNAME} STATIC ${_HEADERS} ${_SOURCES})
 
-add_dependencies(${TARGETNAME} skytrans)
+add_dependencies(${TARGETNAME} skytransproto)
 
-target_link_libraries(${TARGETNAME} skytrans)
+target_link_libraries(${TARGETNAME} skytransproto)
 
 
 
