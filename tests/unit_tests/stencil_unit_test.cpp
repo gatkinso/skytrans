@@ -24,8 +24,6 @@
 #pragma warning(default:4800)
 #include "stencil/stencil.h"
 
-#define SKYTRANS_PORT //
-
 class StencilUnitTest : public ::testing::Test
 {
 protected:
@@ -290,40 +288,6 @@ TEST_F(StencilUnitTest, get_value_nomatch)
     ASSERT_TRUE(values[0] == "NOT FOUND");
 }
 
-TEST_F(StencilUnitTest, DISABLED_ReflectionByName)
-{
-    google::protobuf::Message* paMessage = &stencil_proto_;
-    const google::protobuf::FieldDescriptor* paFieldDescriptorByName = paMessage->GetDescriptor()->FindFieldByName("includes");
-    const google::protobuf::Reflection* pReflection = paMessage->GetReflection();
-
-    google::protobuf::RepeatedFieldRef<std::string> ref =
-        pReflection->GetRepeatedFieldRef<std::string>(*paMessage, paFieldDescriptorByName);
-
-    for (int i = 0; i < ref.size(); i++)
-    {
-        std::string fld = pReflection->GetRepeatedString(*paMessage, paFieldDescriptorByName, i);
-
-        ASSERT_EQ(fld, includes_[i]);
-    }
-}
-
-TEST_F(StencilUnitTest, DISABLED_ReflectionByNumber)
-{
-    google::protobuf::Message* paMessage = &stencil_proto_;
-    const google::protobuf::FieldDescriptor* paFieldDescriptorByNum = paMessage->GetDescriptor()->FindFieldByNumber(1000);
-    const google::protobuf::Reflection* pReflection = paMessage->GetReflection();
-
-    google::protobuf::RepeatedFieldRef<std::string> ref =
-        pReflection->GetRepeatedFieldRef<std::string>(*paMessage, paFieldDescriptorByNum);
-
-    for (int i = 0; i < ref.size(); i++)
-    {
-        std::string fld = pReflection->GetRepeatedString(*paMessage, paFieldDescriptorByNum, i);
-
-        ASSERT_EQ(fld, includes_[i]);
-    }
-}
-
 TEST_F(StencilUnitTest, clear)
 {
     skyloupe::Stencil stencil;
@@ -333,9 +297,5 @@ TEST_F(StencilUnitTest, clear)
 
     rc = stencil.clear();
     ASSERT_EQ(true, rc);
-
-#ifndef SKYTRANS_PORT
-    ASSERT_EQ(stencil.get_proto().includes_size(), 0);
-#endif
 }
 
