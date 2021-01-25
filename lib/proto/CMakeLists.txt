@@ -61,7 +61,7 @@ foreach(PROTO ${PROTO_FILES})
 
     #python
     add_custom_command(
-        OUTPUT  ${PROTO_DIR}/${PROTO}.pb.py
+        OUTPUT  ${PROTO_DIR}/${PROTO}_pb2.py
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
         COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
         ARGS    --python_out=${PROTO_DIR}
@@ -69,24 +69,53 @@ foreach(PROTO ${PROTO_FILES})
                 ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
     )
     set(PROTOPY_RESULTS ${PROTOPY_RESULTS}
-        ${PROTO_DIR}/${PROTO}.pb.py
+        ${PROTO_DIR}/${PROTO}_pb2.py
     )
-    
-    #go
+
+    #python gRPC
     add_custom_command(
-        OUTPUT  ${PROTO_DIR}/${PROTO}.pb.go
+        OUTPUT  ${PROTO_DIR}/${PROTO}_pb2_grpc.py
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
         COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-        ARGS    --proto_path=${CMAKE_CURRENT_SOURCE_DIR} --go_out=${PROTO_DIR}
+        ARGS    --grpc_out=${PROTO_DIR}
+                --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
+                --plugin=protoc-gen-grpc=${_GRPC_PY_PLUGIN_EXECUTABLE}
                 ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
     )
-    set(PROTOGO_RESULTS ${PROTOGO_RESULTS}
-        ${PROTO_DIR}/${PROTO}.pb.go
+    set(PROTOPY_RESULTS ${PROTOPY_RESULTS}
+        ${PROTO_DIR}/${PROTO}_pb2_grpc.py
     )
+    
+    ##go
+    #add_custom_command(
+    #    OUTPUT  ${PROTO_DIR}/${PROTO}.pb.go
+    #    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
+    #    COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+    #    ARGS    --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
+    #            --go_out=${PROTO_DIR}
+    #            ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
+    #)
+    #set(PROTOGO_RESULTS ${PROTOGO_RESULTS}
+    #    ${PROTO_DIR}/${PROTO}.pb.go
+    #)
+
+    ##go gRPC
+    #add_custom_command(
+    #    OUTPUT  ${PROTO_DIR}/${PROTO}.grpc.pb.go
+    #    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
+    #    COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+    #    ARGS    --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
+    #            --grpc_out=${PROTO_DIR}
+    #            --plugin=protoc-gen-grpc=${_GRPC_GO_PLUGIN_EXECUTABLE}
+    #            ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
+    #)
+    #set(PROTOGO_RESULTS ${PROTOGO_RESULTS}
+    #    ${PROTO_DIR}/${PROTO}.grpc.pb.go
+    #)
 endforeach(PROTO)
 
 add_custom_target(runPy ALL DEPENDS ${PROTOPY_RESULTS})
-add_custom_target(runGo ALL DEPENDS ${PROTOGO_RESULTS})
+#add_custom_target(runGo ALL DEPENDS ${PROTOGO_RESULTS})
 
 add_library(${TARGETNAME} STATIC ${PROTOCPP_RESULTS} ${PROTOCPPgrpc_RESULTS})
 
