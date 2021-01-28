@@ -1,9 +1,8 @@
 from concurrent import futures
-import time
-import math
-import logging
+from google.protobuf.json_format import MessageToJson
 
 import grpc
+import transport_pb2
 import transport_pb2_grpc
 
 class TransportServicer(transport_pb2_grpc.TransportServicer):
@@ -13,17 +12,20 @@ class TransportServicer(transport_pb2_grpc.TransportServicer):
         return
 
     def Exchange(self, request, context):
-        return None
+        json_trans = MessageToJson(request)
+        print(json_trans)
+        res = transport_pb2.Response()
+        return res
+
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     transport_pb2_grpc.add_TransportServicer_to_server(
         TransportServicer(), server)
-    server.add_insecure_port('[::]:50051')
+    server.add_insecure_port('[::]:1967')
     server.start()
     server.wait_for_termination()
 
 
 if __name__ == '__main__':
-    logging.basicConfig()
     serve()

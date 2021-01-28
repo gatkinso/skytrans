@@ -350,8 +350,8 @@ bool Stencil::set_value_int(const::std::string& key, int value)
         return false;
     }
 
-    auto map = *stencil_proto_.mutable_int_values();
-    map[key] = value;
+    google::protobuf::MapPair < std::string, int > pair(key, value);
+    stencil_proto_.mutable_int_values()->insert(pair);
 
     return true;
 }
