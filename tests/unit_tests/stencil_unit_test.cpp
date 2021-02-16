@@ -191,10 +191,10 @@ TEST_F(StencilUnitTest, set_value_int)
     ASSERT_EQ(true, rc);
 
     int val = 0;
-    bool ret = stencil.get_value_int("a_field", val, 4321);
+    bool ret = stencil.get_value_int("a_field", val, 0);
 
     ASSERT_TRUE(ret);
-    ASSERT_TRUE(val == 4321);
+    ASSERT_TRUE(val == 9876);
 }
 
 TEST_F(StencilUnitTest, set_value_bool)

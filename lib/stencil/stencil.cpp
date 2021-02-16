@@ -323,22 +323,8 @@ bool Stencil::set_value_string(const::std::string& key, const std::string& value
         return false;
     }
 
-    bool done = false;
-    for (auto iter = stencil_proto_.mutable_string_values()->begin(); iter != stencil_proto_.mutable_string_values()->end(); iter++)
-    {
-        auto val = iter->first;
-        if (val == key)
-        {
-            iter->second = value;
-            done = true;
-        }
-    }
-
-    if (done == false)
-    {
-        google::protobuf::MapPair < std::string, std::string > pair(key, value);
-        stencil_proto_.mutable_string_values()->insert(pair);
-    }
+    ::google::protobuf::Map<std::string, std::string>& mappy = *stencil_proto_.mutable_string_values();
+    mappy[key] = value;
 
     return true;
 }
@@ -350,8 +336,8 @@ bool Stencil::set_value_int(const::std::string& key, int value)
         return false;
     }
 
-    google::protobuf::MapPair < std::string, int > pair(key, value);
-    stencil_proto_.mutable_int_values()->insert(pair);
+    ::google::protobuf::Map<std::string, int>& mappy = *stencil_proto_.mutable_int_values();
+    mappy[key] = value;
 
     return true;
 }
@@ -362,23 +348,9 @@ bool Stencil::set_value_bool(const::std::string& key, bool value)
     {
         return false;
     }
-
-    bool done = false;
-    for (auto iter = stencil_proto_.mutable_bool_values()->begin(); iter != stencil_proto_.mutable_bool_values()->end(); iter++)
-    {
-        auto val = iter->first;
-        if (val == key)
-        {
-            iter->second = value;
-            done = true;
-        }
-    }
-
-    if (done == false)
-    {
-        google::protobuf::MapPair < std::string, bool > pair(key, value);
-        stencil_proto_.mutable_bool_values()->insert(pair);
-    }
+    
+    ::google::protobuf::Map<std::string, bool>& mappy = *stencil_proto_.mutable_bool_values();
+    mappy[key] = value;
 
     return true;
 }
