@@ -13,6 +13,5 @@
 #  permissions and limitations under the License.
 #
 
-add_subdirectory(proto)
-add_subdirectory(stencil)
-add_subdirectory(skytrans)
+add_subdirectory(client)
+add_subdirectory(pytrans)

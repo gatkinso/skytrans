@@ -33,5 +33,6 @@ add_dependencies(${TARGETNAME} skytransproto)
 
 target_link_libraries(${TARGETNAME} skytransproto)
 
-
+install(TARGETS ${TARGETNAME} LIBRARY DESTINATION)
+install(FILES ${_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${TARGETNAME})
 

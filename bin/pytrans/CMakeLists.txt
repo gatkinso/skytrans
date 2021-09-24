@@ -1,5 +1,5 @@
 #
-#  Copyright (C) 2019 Skyloupe, LLC
+#  Copyright (C) 2017 Skyloupe, LLC
 #
 #  Licensed under the Apache License, Version 2.0 (the "License").
 #  You may not use this file except in compliance with the License.
@@ -13,6 +13,11 @@
 #  permissions and limitations under the License.
 #
 
-add_subdirectory(proto)
-add_subdirectory(stencil)
-add_subdirectory(skytrans)
+set(TARGETNAME pytrans)
+
+set(PY_FILES
+    pytrans_server.py
+)
+
+include(GNUInstallDirs)
+install(FILES ${PY_FILES} DESTINATION ${CMAKE_INSTALL_BINDIR}/pytrans)
