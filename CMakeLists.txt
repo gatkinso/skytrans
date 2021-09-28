@@ -55,8 +55,6 @@ set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
 set(_GRPC_PY_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_python_plugin>)
 set(_GRPC_GO_PLUGIN_EXECUTABLE protoc-gen-go)
 
-message("****" ${_GRPC_PY_PLUGIN_EXECUTABLE})
-
 enable_testing()
 find_package(GTest REQUIRED)
 

@@ -3,14 +3,14 @@
 
 using namespace skyloupe::skytrans;
 
-int main(int argc, char** argv)
+void doit(int i)
 {
     TransportClient client(
         grpc::CreateChannel("localhost:1967", grpc::InsecureChannelCredentials())
     );
 
     skyloupe::Stencil s;
-    s.set_value_int("id", 1);
+    s.set_value_int("id", i);
     s.set_value_string("Company", "Microsoft");
     Request req;
 
@@ -21,6 +21,16 @@ int main(int argc, char** argv)
     auto status = client.Exchange(req, res);
 
     std::cout << "Response received: " << res.DebugString() << std::endl;
+
+    return;
+}
+
+int main(int argc, char** argv)
+{
+    for( int i = 0; i < 10000; i++)
+    {
+        doit(i);
+    }
 
     return 0;
 }
