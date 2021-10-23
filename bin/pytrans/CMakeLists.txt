@@ -17,6 +17,8 @@ set(TARGETNAME pytrans)
 
 set(PY_FILES
     pytrans_server.py
+    model.py
+    estypes.py
 )
 
 include(GNUInstallDirs)
