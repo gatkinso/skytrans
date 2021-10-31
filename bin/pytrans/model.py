@@ -31,6 +31,17 @@ class Unmount(StructuredRel):
     global_seq_num = IntegerProperty(unique_index=False, required=False)
     frm = StringProperty(unique_index=False, required=True)
 
+class Exited(StructuredRel):
+    global_seq_num = IntegerProperty(unique_index=False, required=False)
+    stat = IntegerProperty(unique_index=False, required=False)
+
+class Exit(StructuredNode):
+    hostname = StringProperty(unique_index=False, required=True)
+    es_message_version = IntegerProperty(unique_index=False)
+    unix_time = IntegerProperty(unique_index=False, required=True)
+    pid = IntegerProperty(unique_index=False)
+    proc = RelationshipFrom("Process", "EXITED", model=Exited)
+
 class Process(StructuredNode):
     hostname = StringProperty(unique_index=False, required=True)
     es_message_version = IntegerProperty(unique_index=False)
@@ -54,14 +65,6 @@ class FileOp(StructuredRel):
     unix_time = IntegerProperty(unique_index=False, required=True)
     global_seq_num = IntegerProperty(unique_index=False, required=False)
 
-class KextLoad(StructuredRel):
-    actor = RelationshipFrom(Process, "LOADED")
-    global_seq_num = IntegerProperty(unique_index=False, required=False)
-
-class KextUnload(StructuredRel):
-    actor = RelationshipFrom(Process, "UNLOADED")
-    global_seq_num = IntegerProperty(unique_index=False, required=False)
-
 class File(StructuredNode):
     hostname = StringProperty(unique_index=False, required=True)
     es_message_version = IntegerProperty(unique_index=False)
@@ -72,11 +75,24 @@ class File(StructuredNode):
     writer = RelationshipFrom(Process, "WROTE", model = FileOp)
     accessor = RelationshipFrom(Process, "ACCESSED", model = FileOp)
     closer = RelationshipFrom(Process, "CLOSED", model = FileOp)
-    kext_load = RelationshipFrom(Process, "KEXT_LOAD", model = KextLoad)
-    kext_unload = RelationshipFrom(Process, "KEXT_UNLOAD", model = KextUnload)
     mount = RelationshipFrom(Process, "MOUNTED", model = Mount)
     unmount = RelationshipFrom(Process, "UNMOUNTED", model = Unmount)
 
+class KextLoad(StructuredRel):
+    unix_time = IntegerProperty(unique_index=False, required=True)
+    global_seq_num = IntegerProperty(unique_index=False, required=False)
+
+class KextUnload(StructuredRel):
+    unix_time = IntegerProperty(unique_index=False, required=True)
+    global_seq_num = IntegerProperty(unique_index=False, required=False)
+
+class Kext(StructuredNode):
+     hostname = StringProperty(unique_index=False, required=True)
+     es_message_version = IntegerProperty(unique_index=False)
+     identifier = StringProperty(unique_index=False, required=True)
+
+     load = RelationshipFrom(Process, "LOADED", model = KextLoad)
+     unload = RelationshipFrom(Process, "UNLOADED", model = KextUnload)
 
 #class SendPointEvent(StructuredNode):
 #    hostname = StringProperty(unique_index=False, required=True)
