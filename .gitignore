@@ -36,3 +36,8 @@ __build*/
 
 # Dev Environment
 .vscode
+
+# Python
+*.pyc
+
+.DS_Store
