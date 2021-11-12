@@ -39,11 +39,17 @@ public:
     virtual std::string get_value_string(const::std::string& key, const std::string nomatch = "@NOTFOUND");
     virtual bool get_value_int(const::std::string& key, int& value, int nomatch = 0);
     virtual bool get_value_bool(const::std::string& key, bool& value, bool = false);
+    virtual bool get_value_uint(const::std::string& key, uint32_t& value, uint32_t nomatch = 0);
+    virtual bool get_value_int64(const::std::string& key, int64_t& value, int64_t nomatch = 0);
+    virtual bool get_value_uint64(const::std::string& key, uint64_t& value, uint64_t nomatch = 0);
 
     virtual bool set_value(const::std::string& key, const std::string& value);
     virtual bool set_value_string(const::std::string& key, const std::string& value);
     virtual bool set_value_int(const::std::string& key, int value);
     virtual bool set_value_bool(const::std::string& key, bool value);
+    virtual bool set_value_uint(const::std::string& key, uint32_t value);
+    virtual bool set_value_int64(const::std::string& key, int64_t value);
+    virtual bool set_value_uint64(const::std::string& key, uint64_t value);
 
     virtual bool clear();
     virtual bool clear_key(const::std::string& key);

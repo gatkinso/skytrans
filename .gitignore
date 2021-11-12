@@ -38,4 +38,6 @@ __build*/
 .vscode
 
 # Python
- *.pyc
+*.pyc
+
+.DS_Store
