@@ -36,3 +36,6 @@ __build*/
 
 # Dev Environment
 .vscode
+
+# Python
+ *.pyc
