@@ -1,6 +1,6 @@
 
 from neomodel import StructuredNode, StructuredRel, StringProperty, IntegerProperty, RelationshipTo, RelationshipFrom, config
-from neomodel.properties import BooleanProperty
+from neomodel.properties import ArrayProperty, BooleanProperty
 
 class Signal(StructuredRel):
     signal = IntegerProperty(unique_index=False, required=True)
@@ -35,6 +35,10 @@ class Exited(StructuredRel):
     global_seq_num = IntegerProperty(unique_index=False, required=False)
     stat = IntegerProperty(unique_index=False, required=False)
 
+class MMap(StructuredRel):
+    global_seq_num = IntegerProperty(unique_index=False, required=False)
+    unix_time = IntegerProperty(unique_index=False, required=True)
+
 class Exit(StructuredNode):
     hostname = StringProperty(unique_index=False, required=True)
     es_message_version = IntegerProperty(unique_index=False)
@@ -43,6 +47,7 @@ class Exit(StructuredNode):
     proc = RelationshipFrom("Process", "EXITED", model=Exited)
 
 class Process(StructuredNode):
+    audit_md5_token = ArrayProperty(unique_index=True, required=True)
     hostname = StringProperty(unique_index=False, required=True)
     es_message_version = IntegerProperty(unique_index=False)
     executable_path = StringProperty(unique_index=False, required=True)
@@ -66,6 +71,7 @@ class FileOp(StructuredRel):
     global_seq_num = IntegerProperty(unique_index=False, required=False)
 
 class File(StructuredNode):
+    pathname_md5 = ArrayProperty(unique_index=True, required=True)
     hostname = StringProperty(unique_index=False, required=True)
     es_message_version = IntegerProperty(unique_index=False)
     target_path = StringProperty(unique_index=False, required=True)
@@ -77,6 +83,7 @@ class File(StructuredNode):
     closer = RelationshipFrom(Process, "CLOSED", model = FileOp)
     mount = RelationshipFrom(Process, "MOUNTED", model = Mount)
     unmount = RelationshipFrom(Process, "UNMOUNTED", model = Unmount)
+    mmap = RelationshipFrom(Process, "MMAP", model = MMap)
 
 class KextLoad(StructuredRel):
     unix_time = IntegerProperty(unique_index=False, required=True)
