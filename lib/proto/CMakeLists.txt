@@ -95,9 +95,37 @@ foreach(PROTO ${PROTO_FILES})
     set(PROTOPY_RESULTS ${PROTOPY_RESULTS}
         ${PROTO_DIR}/${PROTO}_pb2_grpc.py
     )
+
+    #go
+    add_custom_command(
+        OUTPUT  ${PROTO_DIR}/${PROTO}.pb.go
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
+        COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+        ARGS    --proto_path=${CMAKE_CURRENT_SOURCE_DIR} --go_out=${PROTO_DIR}
+                ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
+    )
+    set(PROTOGO_RESULTS ${PROTOGO_RESULTS}
+        ${PROTO_DIR}/${PROTO}.pb.go
+    )
+
+    #go gRPC
+    #protoc --go_out=. --go_opt=paths=source_relative \
+    #--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    #routeguide/route_guide.proto
+    add_custom_command(
+        OUTPUT  ${PROTO_DIR}/${PROTO}.grpc.pb.go
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
+        COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+        ARGS    --proto_path=${CMAKE_CURRENT_SOURCE_DIR} --go_out=${PROTO_DIR} --go-grpc_out=${PROTO_DIR}
+                ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
+    )
+    set(PROTOGO_RESULTS ${PROTOGO_RESULTS}
+        ${PROTO_DIR}/${PROTO}.grpc.pb.go
+    )
 endforeach(PROTO)
 
 add_custom_target(runPy ALL DEPENDS ${PROTOPY_RESULTS})
+add_custom_target(runGo ALL DEPENDS ${PROTOGO_RESULTS})
 
 add_library(${TARGETNAME} STATIC ${PROTOCPP_RESULTS} ${PROTOCPPgrpc_RESULTS})
 

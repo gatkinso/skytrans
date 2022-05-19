@@ -17,6 +17,8 @@ syntax = "proto3";
 
 package skyloupe.skytrans;
 
+option go_package = "com.skyloupe.skytrans";
+
 message Stencil
 {
     map<string, string> string_values = 100;
