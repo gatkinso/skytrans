@@ -113,7 +113,7 @@ bool Stencil::read_string(const std::string& json_str)
     {
         auto ret = google::protobuf::util::JsonStringToMessage(json_str, &stencil_proto_);
 
-        if (ret != google::protobuf::util::Status::OK)
+        if (false == ret.ok())
         {
             stencil_proto_.Clear();
             return false;
@@ -138,7 +138,7 @@ bool Stencil::write_string(std::string& json_str) const
     {
         auto ret = google::protobuf::util::MessageToJsonString(stencil_proto_, &json_str);
 
-        if (ret != google::protobuf::util::Status::OK)
+        if (false == ret.ok())
         {
             return false;
         }

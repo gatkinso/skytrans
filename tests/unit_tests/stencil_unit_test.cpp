@@ -41,12 +41,12 @@ TEST_F(StencilUnitTest, SerDes_Json)
     std::string json_str;
     auto ret = google::protobuf::util::MessageToJsonString(stencil_proto_, &json_str);
 
-    ASSERT_EQ(google::protobuf::util::Status::OK, ret);
+    ASSERT_TRUE(ret.ok());
 
     skyloupe::skytrans::Stencil stencil_out;
     ret = google::protobuf::util::JsonStringToMessage(json_str, &stencil_out);
 
-    ASSERT_EQ(google::protobuf::util::Status::OK, ret);
+    ASSERT_TRUE(ret.ok());
     ASSERT_TRUE(google::protobuf::util::MessageDifferencer::Equivalent(stencil_out, stencil_proto_));
 }
 
@@ -102,7 +102,7 @@ TEST_F(StencilUnitTest, get_value_string)
     std::string json_str;
     google::protobuf::util::Status ret = google::protobuf::util::MessageToJsonString(stencil.get_proto(), &json_str);
 
-    ASSERT_EQ(google::protobuf::util::Status::OK, ret);
+    ASSERT_TRUE(ret.ok());
 
     std::string values = stencil.get_value_string("namespace", "NOT FOUND");
 

@@ -48,11 +48,11 @@ TEST_F(TransportUnitTest, SerDes_Json)
     std::string json_str;
     auto ret = google::protobuf::util::MessageToJsonString(req_, &json_str);
 
-    ASSERT_EQ(google::protobuf::util::Status::OK, ret);
+    ASSERT_TRUE(ret.ok());
 
     skyloupe::skytrans::Request req_out;
     ret = google::protobuf::util::JsonStringToMessage(json_str, &req_out);
 
-    ASSERT_EQ(google::protobuf::util::Status::OK, ret);
+    ASSERT_TRUE(ret.ok());
     ASSERT_TRUE(google::protobuf::util::MessageDifferencer::Equivalent(req_out, req_));
 }
