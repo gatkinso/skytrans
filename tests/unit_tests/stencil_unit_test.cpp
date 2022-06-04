@@ -41,12 +41,12 @@ TEST_F(StencilUnitTest, SerDes_Json)
     std::string json_str;
     auto ret = google::protobuf::util::MessageToJsonString(stencil_proto_, &json_str);
 
-    ASSERT_EQ(google::protobuf::util::Status::OK, ret);
+    ASSERT_TRUE(ret.ok());
 
     skyloupe::skytrans::Stencil stencil_out;
     ret = google::protobuf::util::JsonStringToMessage(json_str, &stencil_out);
 
-    ASSERT_EQ(google::protobuf::util::Status::OK, ret);
+    ASSERT_TRUE(ret.ok());
     ASSERT_TRUE(google::protobuf::util::MessageDifferencer::Equivalent(stencil_out, stencil_proto_));
 }
 
@@ -102,7 +102,7 @@ TEST_F(StencilUnitTest, get_value_string)
     std::string json_str;
     google::protobuf::util::Status ret = google::protobuf::util::MessageToJsonString(stencil.get_proto(), &json_str);
 
-    ASSERT_EQ(google::protobuf::util::Status::OK, ret);
+    ASSERT_TRUE(ret.ok());
 
     std::string values = stencil.get_value_string("namespace", "NOT FOUND");
 
@@ -187,14 +187,65 @@ TEST_F(StencilUnitTest, set_value_int)
     bool rc = stencil.read_file("stencil_unit_test.json");
     ASSERT_EQ(true, rc);
 
-    rc = stencil.set_value_int("a_field", 9876);
+    rc = stencil.set_value_int("a_field", -9876);
     ASSERT_EQ(true, rc);
 
     int val = 0;
-    bool ret = stencil.get_value_int("a_field", val, 4321);
+    bool ret = stencil.get_value_int("a_field", val, 0);
 
     ASSERT_TRUE(ret);
-    ASSERT_TRUE(val == 4321);
+    ASSERT_TRUE(val == -9876);
+}
+
+TEST_F(StencilUnitTest, set_value_uint)
+{
+    skyloupe::Stencil stencil;
+
+    bool rc = stencil.read_file("stencil_unit_test.json");
+    ASSERT_EQ(true, rc);
+
+    rc = stencil.set_value_uint("a_field", 9876);
+    ASSERT_EQ(true, rc);
+
+    uint32_t val = 0;
+    bool ret = stencil.get_value_uint("a_field", val, 0);
+
+    ASSERT_TRUE(ret);
+    ASSERT_TRUE(val == 9876);
+}
+
+TEST_F(StencilUnitTest, set_value_int64)
+{
+    skyloupe::Stencil stencil;
+
+    bool rc = stencil.read_file("stencil_unit_test.json");
+    ASSERT_EQ(true, rc);
+
+    rc = stencil.set_value_int64("a_field", -0x0540BE400);
+    ASSERT_EQ(true, rc);
+
+    int64_t val = 0;
+    bool ret = stencil.get_value_int64("a_field", val, 0);
+
+    ASSERT_TRUE(ret);
+    ASSERT_TRUE(val == -0x0540BE400);
+}
+
+TEST_F(StencilUnitTest, set_value_uint64)
+{
+    skyloupe::Stencil stencil;
+
+    bool rc = stencil.read_file("stencil_unit_test.json");
+    ASSERT_EQ(true, rc);
+
+    rc = stencil.set_value_uint64("a_field", 0x2540BE400);
+    ASSERT_EQ(true, rc);
+
+    uint64_t val = 0;
+    bool ret = stencil.get_value_uint64("a_field", val, 0);
+
+    ASSERT_TRUE(ret);
+    ASSERT_TRUE(val == 0x2540BE400);
 }
 
 TEST_F(StencilUnitTest, set_value_bool)

@@ -17,9 +17,15 @@ syntax = "proto3";
 
 package skyloupe.skytrans;
 
+option go_package = "com.skyloupe.skytrans";
+
 message Stencil
 {
     map<string, string> string_values = 100;
     map<string, int32> int_values     = 200;
     map<string, bool> bool_values     = 300;
+
+    map<string, uint32> uint_values   = 400;
+    map<string, int64> int64_values   = 500;
+    map<string, uint64> uint64_values = 600;
 }

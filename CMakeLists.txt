@@ -49,8 +49,11 @@ find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 find_package(gRPC CONFIG REQUIRED)
+
 set(_GRPC_GRPCPP_UNSECURE gRPC::grpc++_unsecure)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
+set(_GRPC_PY_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_python_plugin>)
+set(_GRPC_GO_PLUGIN_EXECUTABLE protoc-gen-go)
 
 enable_testing()
 find_package(GTest REQUIRED)
@@ -65,5 +68,5 @@ if(UNIX AND NOT APPLE)
 endif(UNIX AND NOT APPLE)
 
 add_subdirectory(lib)
-add_subdirectory(bin/client)
+add_subdirectory(bin)
 add_subdirectory(tests/unit_tests)

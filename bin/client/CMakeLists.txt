@@ -13,4 +13,5 @@ include_directories(${TARGETNAME} ${_INC_DIRS})
 
 add_executable(${TARGETNAME} ${_SOURCES})
 
-target_link_libraries(${TARGETNAME} stencil skytransproto ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
+target_link_libraries(${TARGETNAME} stencil skytransproto skytrans ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
+install(TARGETS ${TARGETNAME} RUNTIME DESTINATION)

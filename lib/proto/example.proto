@@ -17,6 +17,8 @@ syntax = "proto3";
 
 package skyloupe.skytrans;
 
+option go_package = "com.skyloupe.skytrans";
+
 message Example
 {
     int32 count = 10;
