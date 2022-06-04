@@ -113,7 +113,7 @@ bool Stencil::read_string(const std::string& json_str)
     {
         auto ret = google::protobuf::util::JsonStringToMessage(json_str, &stencil_proto_);
 
-        if (ret != google::protobuf::util::Status::OK)
+        if (false == ret.ok())
         {
             stencil_proto_.Clear();
             return false;
@@ -138,7 +138,7 @@ bool Stencil::write_string(std::string& json_str) const
     {
         auto ret = google::protobuf::util::MessageToJsonString(stencil_proto_, &json_str);
 
-        if (ret != google::protobuf::util::Status::OK)
+        if (false == ret.ok())
         {
             return false;
         }
@@ -278,6 +278,70 @@ bool Stencil::get_value_bool(const::std::string& key, bool& value, bool nomatch)
     return true;
 }
 
+bool Stencil::get_value_uint(const::std::string& key, uint32_t& value, uint32_t nomatch)
+{
+    value = nomatch;
+
+    if (key.empty() || stencil_proto_.IsInitialized() == false)
+    {
+        return false;
+    }
+
+    for (auto val : stencil_proto_.uint_values())
+    {
+        if (val.first == key)
+        {
+            value = val.second;
+            break;
+        }
+    }
+
+    return true;
+}
+
+bool Stencil::get_value_int64(const::std::string& key, int64_t& value, int64_t nomatch)
+{
+    value = nomatch;
+
+    if (key.empty() || stencil_proto_.IsInitialized() == false)
+    {
+        return false;
+    }
+
+    for (auto val : stencil_proto_.int64_values())
+    {
+        if (val.first == key)
+        {
+            value = val.second;
+            break;
+        }
+    }
+
+    return true;
+}
+
+bool Stencil::get_value_uint64(const::std::string& key, uint64_t& value, uint64_t nomatch)
+{
+    value = nomatch;
+
+    if (key.empty() || stencil_proto_.IsInitialized() == false)
+    {
+        return false;
+    }
+
+    for (auto val : stencil_proto_.uint64_values())
+    {
+        if (val.first == key)
+        {
+            value = val.second;
+            break;
+        }
+    }
+
+    return true;
+}
+
+
 bool Stencil::set_value(const::std::string& key, const std::string& value)
 {
     if (key.empty() || stencil_proto_.IsInitialized() == false)
@@ -323,22 +387,8 @@ bool Stencil::set_value_string(const::std::string& key, const std::string& value
         return false;
     }
 
-    bool done = false;
-    for (auto iter = stencil_proto_.mutable_string_values()->begin(); iter != stencil_proto_.mutable_string_values()->end(); iter++)
-    {
-        auto val = iter->first;
-        if (val == key)
-        {
-            iter->second = value;
-            done = true;
-        }
-    }
-
-    if (done == false)
-    {
-        google::protobuf::MapPair < std::string, std::string > pair(key, value);
-        stencil_proto_.mutable_string_values()->insert(pair);
-    }
+    ::google::protobuf::Map<std::string, std::string>& mappy = *stencil_proto_.mutable_string_values();
+    mappy[key] = value;
 
     return true;
 }
@@ -350,8 +400,47 @@ bool Stencil::set_value_int(const::std::string& key, int value)
         return false;
     }
 
-    auto map = *stencil_proto_.mutable_int_values();
-    map[key] = value;
+    ::google::protobuf::Map<std::string, int>& mappy = *stencil_proto_.mutable_int_values();
+    mappy[key] = value;
+
+    return true;
+}
+
+bool Stencil::set_value_uint(const::std::string& key, uint32_t value)
+{
+    if (key.empty() || stencil_proto_.IsInitialized() == false)
+    {
+        return false;
+    }
+
+    ::google::protobuf::Map<std::string, uint32_t>& mappy = *stencil_proto_.mutable_uint_values();
+    mappy[key] = value;
+
+    return true;
+}
+
+bool Stencil::set_value_int64(const::std::string& key, int64_t value)
+{
+    if (key.empty() || stencil_proto_.IsInitialized() == false)
+    {
+        return false;
+    }
+
+    ::google::protobuf::Map<std::string, int64_t>& mappy = *stencil_proto_.mutable_int64_values();
+    mappy[key] = value;
+
+    return true;
+}
+
+bool Stencil::set_value_uint64(const::std::string& key, uint64_t value)
+{
+    if (key.empty() || stencil_proto_.IsInitialized() == false)
+    {
+        return false;
+    }
+
+    ::google::protobuf::Map<std::string, uint64_t>& mappy = *stencil_proto_.mutable_uint64_values();
+    mappy[key] = value;
 
     return true;
 }
@@ -362,23 +451,9 @@ bool Stencil::set_value_bool(const::std::string& key, bool value)
     {
         return false;
     }
-
-    bool done = false;
-    for (auto iter = stencil_proto_.mutable_bool_values()->begin(); iter != stencil_proto_.mutable_bool_values()->end(); iter++)
-    {
-        auto val = iter->first;
-        if (val == key)
-        {
-            iter->second = value;
-            done = true;
-        }
-    }
-
-    if (done == false)
-    {
-        google::protobuf::MapPair < std::string, bool > pair(key, value);
-        stencil_proto_.mutable_bool_values()->insert(pair);
-    }
+    
+    ::google::protobuf::Map<std::string, bool>& mappy = *stencil_proto_.mutable_bool_values();
+    mappy[key] = value;
 
     return true;
 }
