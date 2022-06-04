@@ -51,6 +51,7 @@ class Process(StructuredNode):
     hostname = StringProperty(unique_index=False, required=True)
     es_message_version = IntegerProperty(unique_index=False)
     executable_path = StringProperty(unique_index=False, required=True)
+    filename = StringProperty(unique_index=False, required=False)
     pid = IntegerProperty(unique_index=False)
     ppid = IntegerProperty(unique_index=False)
     original_ppid = IntegerProperty(unique_index=False)
@@ -75,6 +76,9 @@ class File(StructuredNode):
     hostname = StringProperty(unique_index=False, required=True)
     es_message_version = IntegerProperty(unique_index=False)
     target_path = StringProperty(unique_index=False, required=True)
+
+    pathname = StringProperty(unique_index=True, required=False)
+    filename = StringProperty(unique_index=True, required=False)
 
     creator = RelationshipFrom(Process, "CREATED", model = FileOp)
     opener = RelationshipFrom(Process, "OPENED", model = FileOp)

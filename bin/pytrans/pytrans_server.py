@@ -15,6 +15,8 @@ import transport_pb2_grpc
 import stencil_pb2
 import model
 import threading, queue
+import time
+import json
 
 import contextlib
 import socket
@@ -27,7 +29,62 @@ class Neo4jClient:
     def __init__(self):
         self.processed = False
 
-    def create_process(self, stencil_, hostname_, es_message_version_, executable_path_,
+    def build_process_json_str(self, audit_md5_token_, hostname_, es_message_version_, executable_path_, pid_, ppid_, original_ppid_, is_platform_binary_, is_es_client_, filename_):
+        json_object = {
+            "audit_md5_token" : audit_md5_token_, 
+            "hostname" : hostname_,
+            "es_message_version": es_message_version_,
+            "executable_path" : executable_path_,
+            "pid" : pid_, 
+            "ppid" : ppid_, 
+            "original_ppid" : original_ppid_, 
+            "is_platform_binary" : is_platform_binary_, 
+            "is_es_client" : is_es_client_,
+            "filename" : filename_
+        }
+
+        json_str = json.dumps(json_object)
+        return json_str
+
+    def build_file_json_str(self, pathname_md5_, hostname_, es_message_version_, target_path_, filename_):
+        json_object = {
+            "pathname_md5" : pathname_md5_, 
+            "hostname" : hostname_, 
+            "es_message_version" : es_message_version_, 
+            "target_path" : target_path_, 
+            "filename" : filename_
+        }
+
+        json_str = json.dumps(json_object)
+        return json_str
+
+    def build_relationship_json_str(self, action_, global_seq_num_, unix_time_, value_):
+        json_object = {
+            "action" : action_,
+            "global_seq_num": global_seq_num_,
+            "unix_time": unix_time_,
+            "value_": value_
+        }
+        json_str = json.dumps(json_object)
+        return json_str
+
+    def create_file(self, stencil_, hostname_, es_message_version_, target_path_, md5_tag_base):
+        file_mutex.acquire()
+        _pathname_md5= [0]*4
+        _pathname_md5[0] = stencil_.uint_values[md5_tag_base + ".md5_0"]
+        _pathname_md5[1] = stencil_.uint_values[md5_tag_base + ".md5_1"]
+        _pathname_md5[2] = stencil_.uint_values[md5_tag_base + ".md5_2"]
+        _pathname_md5[3] = stencil_.uint_values[md5_tag_base + ".md5_3"]
+
+        file = model.File.nodes.first_or_none(pathname_md5 = _pathname_md5)
+        if file == None:
+            file = model.File(pathname_md5 = _pathname_md5, hostname = hostname_,
+                                                es_message_version = es_message_version_,
+                                                target_path = target_path_).save()
+        file_mutex.release()
+        return file
+
+    def create_process(self, stencil_, hostname_, es_message_version_, executable_path_, filename_,
                        pid_, ppid_, original_ppid_, is_platform_binary_, is_es_client_, audit_tag_base, md5_tag_base):   
         mutex.acquire()
         _audit_md5_token = [0]*12
@@ -54,7 +111,8 @@ class Neo4jClient:
                                     ppid = stencil_.int_values[ppid_], 
                                     original_ppid = stencil_.int_values[original_ppid_], 
                                     is_platform_binary = stencil_.bool_values[is_platform_binary_], 
-                                    is_es_client = stencil_.bool_values[is_es_client_]).save()
+                                    is_es_client = stencil_.bool_values[is_es_client_],
+                                    filename = stencil_.string_values[filename_]).save()
         mutex.release()
         return proc
 
@@ -88,7 +146,8 @@ class Neo4jClient:
         proc = self.create_process(stencil_,
                                     hostname_ = hn,
                                     es_message_version_ = ev_ver,
-                                    executable_path_ = "process->executable->path", 
+                                    executable_path_ = "process->executable->path",
+                                    filename_ = "process->executable->filename",
                                     pid_ = "process->pid",
                                     ppid_ = "process->ppid",
                                     original_ppid_ = "process->original_ppid",
@@ -112,7 +171,8 @@ class Neo4jClient:
             exec_proc = self.create_process(stencil_,
                                     hostname_ = hn,
                                     es_message_version_ = es_message_version,
-                                    executable_path_ = "exec.target->executable->path", 
+                                    executable_path_ = "exec.target->executable->path",
+                                    filename_ = "exec.target->executable->filename",
                                     pid_ = "exec.target->pid",
                                     ppid_ = "exec.target->ppid",
                                     original_ppid_ = "exec.target->original_ppid",
@@ -131,6 +191,7 @@ class Neo4jClient:
                                     hostname_ = hn,
                                     es_message_version_ = es_message_version,
                                     executable_path_ = "fork.child->executable->path", 
+                                    filename_ = "fork.child->executable->filename",
                                     pid_ = "fork.child->pid",
                                     ppid_ = "fork.child->ppid",
                                     original_ppid_ = "fork.child->original_ppid",
@@ -147,7 +208,8 @@ class Neo4jClient:
             sig_proc = self.create_process(stencil_,
                                     hostname_ = hn,
                                     es_message_version_ = es_message_version,
-                                    executable_path_ = "signal.target->executable->path", 
+                                    executable_path_ = "signal.target->executable->path",
+                                    filename_ = "signal.target->executable->filename",
                                     pid_ = "signal.target->pid",
                                     ppid_ = "signal.target->ppid",
                                     original_ppid_ = "signal.target->original_ppid",
@@ -165,7 +227,8 @@ class Neo4jClient:
             tgt_proc = self.create_process(stencil_,
                                     hostname_ = hn,
                                     es_message_version_ = es_message_version,
-                                    executable_path_ = "get_task.target->executable->path", 
+                                    executable_path_ = "get_task.target->executable->path",
+                                    filename_ = "get_task.target->executable->filename",
                                     pid_ = "get_task.target->pid",
                                     ppid_ = "get_task.target->ppid",
                                     original_ppid_ = "get_task.target->original_ppid",
@@ -185,7 +248,8 @@ class Neo4jClient:
             child_proc = self.create_process(stencil_,
                                     hostname_ = hn,
                                     es_message_version_ = es_message_version,
-                                    executable_path_ = "proc_suspend_resume.target->executable->path", 
+                                    executable_path_ = "proc_suspend_resume.target->executable->path",
+                                    filename_ = "proc_suspend_resume.target->executable->filename",
                                     pid_ = "proc_suspend_resume.target->pid",
                                     ppid_ = "proc_suspend_resume.target->ppid",
                                     original_ppid_ = "proc_suspend_resume.target->original_ppid",
@@ -258,6 +322,24 @@ class Neo4jClient:
 
             if rel == None:
                 tgt_file.opener.connect(proc, {'op': 'OPENED', 'unix_time' : unix_time, 'global_seq_num': gsn })
+            else:
+                rel.unix_time = unix_time
+            return processed
+
+        if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_WRITE:
+            proc = self.do_proc_create(stencil_, hn = hn, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path")
+            unix_time = int(stencil_.string_values["Unix Time"])
+
+            tgt_file = self.create_file(stencil_,
+                                        hn,
+                                        es_message_version_ = es_message_version,
+                                        target_path_ = stencil_.string_values["write.file->path"],
+                                        md5_tag_base = "write.file->path")
+
+            rel = tgt_file.opener.relationship(proc)
+
+            if rel == None:
+                tgt_file.opener.connect(proc, {'op': 'WROTE', 'unix_time' : unix_time, 'global_seq_num': gsn })
             else:
                 rel.unix_time = unix_time
             return processed
@@ -356,7 +438,6 @@ class Neo4jClient:
             else:
                 rel.unix_time = unix_time
             return processed
-            return processed
 
         processed = False
         return processed
@@ -364,10 +445,6 @@ class Neo4jClient:
     def process(self, request):
         hn = request.meta.data.string_values["Hostname"]
         reqid = request.meta.data.int_values["Req id"]
-
-        #print("Host: " + hn + " Request ID: " + \
-        #    str(reqid)+ " started" + \
-        #    " bytes: " + str(bytes))
 
         count = 0
 
@@ -381,27 +458,31 @@ class Neo4jClient:
 
         bs = len(request.impl)
         elapsed = end - start
+        rate = 0
         if elapsed > 0:
             rate = count / elapsed
 
         print("Host: " + hn + " Request ID: " + str(reqid) + " done " + \
-            " Batch Size: " + str(bs) + " in " + "{:.3f}".format(elapsed) + " seconds" + \
-            " Processed: " + str(count) + \
+            " Batch Size: " + str(bs) + \
+            " in " + "{:.3f}".format(elapsed) + " seconds" + \
+            " Processed: " + str(count)
+            + \
             " Rate: " + "{:.3f}".format(rate) + " per second")
 
 class TransportServicer(transport_pb2_grpc.TransportServicer):
     """Provides methods that implement functionality of route guide server."""
     def __init__(self, txid):
         self.notify_exec = True
-        self.notify_create = False
-        self.notify_close = False
-        self.notify_open = False
+        self.notify_create = True
+        self.notify_close = True
+        self.notify_open = True
+        self.notify_write = True
         self.notify_signal = True
         self.notify_get_task = False
         self.notify_fork = True
-        self.notify_mount = True
+        self.notify_mount = True 
         self.notify_unmount = True
-        self.notify_suspend_resume = True
+        self.notify_suspend_resume = False
         self.notify_kextload = True
         self.notify_kextunload = True
         self.notify_exit = True
@@ -410,6 +491,10 @@ class TransportServicer(transport_pb2_grpc.TransportServicer):
         #self.n4jclient = Neo4jClient()
         self.requestq = queue.Queue()
         self.running = True
+        self.sleepCount = 0
+
+        threading.setprofile(self.trace_dothread())
+
         self.t1 = threading.Thread(target = self.dothread, args =())
         self.t1.start()
 
@@ -419,10 +504,17 @@ class TransportServicer(transport_pb2_grpc.TransportServicer):
         self.t3 = threading.Thread(target = self.dothread, args =())
         self.t3.start()
 
-        #self.t4 = threading.Thread(target = self.dothread, args =())
-        #self.t4.start()
+        self.t4 = threading.Thread(target = self.dothread, args =())
+        self.t4.start()
+
+    def trace_dothread(self):
+        return
+        #print("Current thread's profile")
+        #print("Name:", str(threading.current_thread().getName()))
+        #print("Thread id:", threading.get_ident())
 
     def dothread(self):
+        #threading.setprofile(self.trace_dothread())
         n4jclient = Neo4jClient()
         while self.running:
             r = self.requestq.get()
@@ -453,8 +545,8 @@ class TransportServicer(transport_pb2_grpc.TransportServicer):
 
         self.requestq.put(request)
 
-        bytes = request.ByteSize()
-        print("Queue size: " +str(self.requestq.qsize()))
+        #bytes = request.ByteSize()
+        #print("Queue size: " +str(self.requestq.qsize()))
 
         res = transport_pb2.Response()
 
@@ -473,9 +565,15 @@ class TransportServicer(transport_pb2_grpc.TransportServicer):
         self.DoSubs(res, stencil_, self.notify_kextunload, es_event_type_t.ES_EVENT_TYPE_NOTIFY_KEXTUNLOAD)
         self.DoSubs(res, stencil_, self.notify_exit, es_event_type_t.ES_EVENT_TYPE_NOTIFY_EXIT)
         self.DoSubs(res, stencil_, self.notify_mmap, es_event_type_t.ES_EVENT_TYPE_NOTIFY_MMAP)
+        self.DoSubs(res, stencil_, self.notify_write, es_event_type_t.ES_EVENT_TYPE_NOTIFY_WRITE)
 
         mutee = "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/Metadata.framework/Versions/A/Support/"
         self.DoPathMutes(res, stencil_, "mute prefix", mutee)
+
+        self.sleepCount += 1
+        if self.sleepCount > 10:
+            self.sleepCount = 0
+            time.sleep(0.0001)
 
         return res
 
@@ -506,7 +604,7 @@ def run_server(bind_address, txid):
 def main_new_multi():
     with _reserve_port() as port:
         bind_address = '[::]:{}'.format(port)
-        print()
+        #print()
         #_LOGGER.info("Binding to '%s'", bind_address)
         #sys.stdout.flush()
         workers = []
