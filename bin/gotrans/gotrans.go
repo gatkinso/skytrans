@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	"google.golang.org/grpc"
 
@@ -25,24 +26,22 @@ var (
 // server is used to implement TransportServer.
 type server struct {
 	pb.UnimplementedTransportServer
+
+	id     uint64
+	driver neo4j.Driver
 }
 
 func (s *server) GetString(msg *pb.Request) string {
 	return pi.X.MessageStringOf(msg)
 }
 
-func (s *server) DoEvent(msg *pb.Request, uri, username, password string) error {
-	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
-	if err != nil {
-		log.Printf("NewDriver failed")
-		return err
-	}
-	defer driver.Close()
+func (s *server) DoEvent(id uint64, msg *pb.Request) error {
+	start := time.Now()
 
-	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	session := s.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 
-	log.Printf("Processing %v.....", len(msg.GetImpl()))
+	log.Printf("Batch %v  (%v).....", id, len(msg.GetImpl()))
 	for i, item := range msg.GetImpl() {
 		var s pb.Stencil
 		err := anypb.UnmarshalTo(item, &s, proto.UnmarshalOptions{})
@@ -70,15 +69,17 @@ func (s *server) DoEvent(msg *pb.Request, uri, username, password string) error 
 		}
 	}
 
-	log.Printf(" done")
+	duration := time.Since(start)
+	log.Printf("Finshed %v in %v ms. Rate: %v", id, duration.Milliseconds(), float32(len(msg.GetImpl()))/float32(duration.Milliseconds())*1000)
 
-	return err
+	return nil
 }
 
 // SayHello implements TransportServer
-func (s *server) Exchange(ctx context.Context, in *pb.Request) (*pb.Response, error) {
+func (s *server) Exchange(ctx context.Context, req *pb.Request) (*pb.Response, error) {
 	//log.Printf(s.GetString(in))
-	s.DoEvent(in, "neo4j://192.168.135.199:7687", "neo4j", "password")
+	s.id += 1
+	s.DoEvent(s.id, req)
 	return &pb.Response{}, nil
 }
 
@@ -92,8 +93,15 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
+	driver_, err := neo4j.NewDriver("neo4j://192.168.135.199:7687", neo4j.BasicAuth("neo4j", "password", ""))
+	if err != nil {
+		log.Fatalf("NewDriver failed")
+		return
+	}
+	defer driver_.Close()
+
 	myserver := grpc.NewServer()
-	pb.RegisterTransportServer(myserver, &server{})
+	pb.RegisterTransportServer(myserver, &server{id: 0, driver: driver_})
 
 	log.Printf("server listening at %v", lis.Addr())
 
