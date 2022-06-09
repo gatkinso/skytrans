@@ -41,7 +41,7 @@ func (s *server) DoEvent(id uint64, msg *pb.Request) error {
 	session := s.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 
-	log.Printf("Batch %v  (%v).....", id, len(msg.GetImpl()))
+	//log.Printf("Batch %v  (%v).....", id, len(msg.GetImpl()))
 	for i, item := range msg.GetImpl() {
 		var s pb.Stencil
 		err := anypb.UnmarshalTo(item, &s, proto.UnmarshalOptions{})
@@ -70,7 +70,57 @@ func (s *server) DoEvent(id uint64, msg *pb.Request) error {
 	}
 
 	duration := time.Since(start)
-	log.Printf("Finshed %v in %v ms. Rate: %v", id, duration.Milliseconds(), float32(len(msg.GetImpl()))/float32(duration.Milliseconds())*1000)
+
+	secs := float32(duration.Milliseconds()) / 1000
+
+	log.Printf("Finshed Batch %v (%v) in %v ms. Rate: %v", id, len(msg.GetImpl()), duration.Milliseconds(), float32(len(msg.GetImpl()))/secs)
+
+	return nil
+}
+
+func (s *server) DoEvent2(id uint64, msg *pb.Request) error {
+	start := time.Now()
+
+	session := s.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	tx, _ := session.BeginTransaction()
+
+	//log.Printf("Batch %v  (%v).....", id, len(msg.GetImpl()))
+	for i, item := range msg.GetImpl() {
+		var s pb.Stencil
+		err := anypb.UnmarshalTo(item, &s, proto.UnmarshalOptions{})
+
+		//_, err = session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		_, err = tx.Run(
+			`MERGE (h:Host {hostname:$hostname}) 
+				 MERGE (p:Process {pid:$pid, pathname:$pathname, filename:$filename}) 
+				 MERGE (p)-[r:RAN_ON]-(h)`,
+			map[string]interface{}{
+				"hostname": msg.Meta.Data.GetStringValues()["Hostname"],
+				"pid":      s.GetIntValues()["process->pid"],
+				"pathname": s.GetStringValues()["process->executable->path"],
+				"filename": s.GetStringValues()["process->executable->filename"]})
+		if err != nil {
+			log.Printf("Run failed %v", i)
+			return err
+		}
+
+		//return result.Consume()
+		//})
+		//if err != nil {
+		//	log.Printf("WriteTransaction failed: %v", err)
+		//	return err
+		//}
+	}
+
+	tx.Commit()
+
+	duration := time.Since(start)
+
+	secs := float32(duration.Milliseconds()) / 1000
+
+	log.Printf("Finshed Batch %v (%v) in %v ms. Rate: %v", id, len(msg.GetImpl()), duration.Milliseconds(), float32(len(msg.GetImpl()))/secs)
 
 	return nil
 }
@@ -79,8 +129,11 @@ func (s *server) DoEvent(id uint64, msg *pb.Request) error {
 func (s *server) Exchange(ctx context.Context, req *pb.Request) (*pb.Response, error) {
 	//log.Printf(s.GetString(in))
 	s.id += 1
-	s.DoEvent(s.id, req)
-	return &pb.Response{}, nil
+	s.DoEvent2(s.id, req)
+
+	var res pb.Response
+
+	return &res, nil
 }
 
 func main() {
