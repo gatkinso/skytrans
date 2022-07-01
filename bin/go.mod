@@ -9,6 +9,7 @@ require (
 
 require (
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/neo4j/neo4j-go-driver v1.8.3 // indirect
 	github.com/neo4j/neo4j-go-driver/v4 v4.4.3 // indirect
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
 	golang.org/x/sys v0.0.0-20211124211545-fe61309f8881 // indirect
