@@ -40,23 +40,35 @@ class MMap(StructuredRel):
     unix_time = IntegerProperty(unique_index=False, required=True)
 
 class Exit(StructuredNode):
-    hostname = StringProperty(unique_index=False, required=True)
     es_message_version = IntegerProperty(unique_index=False)
     unix_time = IntegerProperty(unique_index=False, required=True)
     pid = IntegerProperty(unique_index=False)
     proc = RelationshipFrom("Process", "EXITED", model=Exited)
 
+class RanOn(StructuredRel):
+    unix_time = IntegerProperty(unique_index=False, required=False)
+
+class Endpoint(StructuredNode):
+    hostname = StringProperty(unique_index=True, required=True)
+    platform = StringProperty(unique_index=True, required=True)
+    operating_system = StringProperty(unique_index=True, required=True)
+
 class Process(StructuredNode):
     audit_md5_token = ArrayProperty(unique_index=True, required=True)
-    hostname = StringProperty(unique_index=False, required=True)
-    es_message_version = IntegerProperty(unique_index=False)
-    executable_path = StringProperty(unique_index=False, required=True)
+    executable_path = StringProperty(unique_index=True, required=True)
+
     filename = StringProperty(unique_index=False, required=False)
     pid = IntegerProperty(unique_index=False)
     ppid = IntegerProperty(unique_index=False)
+
+    #Mac
     original_ppid = IntegerProperty(unique_index=False)
+    es_message_version = IntegerProperty(unique_index=False)
     is_platform_binary = BooleanProperty(unique_index=False)
     is_es_client = BooleanProperty(unique_index=False)
+
+    #Windows
+    ssession_id = IntegerProperty(unique_index=False)
 
     signal = RelationshipTo("Process", "SIGNAL", model=Signal)
     exec = RelationshipTo("Process", "EXEC", model=Exec)
@@ -65,6 +77,7 @@ class Process(StructuredNode):
     resume = RelationshipTo("Process", "RESUME", model=SuspendResume)
     socks = RelationshipTo("Process", "SHUT_SOCKS", model=SuspendResume)
     gettask = RelationshipTo("Process", "GETTASK", model=GetTask)
+    ran_on = RelationshipTo("Endpoint", "RAN_ON", model=RanOn)
 
 class FileOp(StructuredRel):
     op = StringProperty(unique_index=False, required=True)
@@ -73,10 +86,8 @@ class FileOp(StructuredRel):
 
 class File(StructuredNode):
     pathname_md5 = ArrayProperty(unique_index=True, required=True)
-    hostname = StringProperty(unique_index=False, required=True)
     es_message_version = IntegerProperty(unique_index=False)
     target_path = StringProperty(unique_index=False, required=True)
-
     pathname = StringProperty(unique_index=True, required=False)
     filename = StringProperty(unique_index=True, required=False)
 
@@ -98,7 +109,6 @@ class KextUnload(StructuredRel):
     global_seq_num = IntegerProperty(unique_index=False, required=False)
 
 class Kext(StructuredNode):
-     hostname = StringProperty(unique_index=False, required=True)
      es_message_version = IntegerProperty(unique_index=False)
      identifier = StringProperty(unique_index=False, required=True)
 
