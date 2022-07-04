@@ -165,6 +165,11 @@ class Neo4jClient:
         es_message_version = stencil_.int_values["es_message->version"]
         gsn = stencil_.int_values["global_seq_num"]
 
+        if event_type == 909:  #TODO types
+            processed = True
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path", link = True)
+            return processed
+
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_EXEC:
             proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path", link = True)
             exec_proc = self.create_process(stencil_,
