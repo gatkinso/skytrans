@@ -192,8 +192,9 @@ class Neo4jClient:
             return processed
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_EXEC:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_process_token", 
-            parent_token_base="process_parent_token", md5_tag_base = "process->executable->path", link = True)
+            processed = True
+            #proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_process_token", 
+            #parent_token_base="process_parent_token", md5_tag_base = "process->executable->path", link = True)
             exec_proc = self.create_process(stencil_,
                                     es_message_version_ = es_message_version,
                                     executable_path_ = "exec.target->executable->path",
@@ -207,8 +208,20 @@ class Neo4jClient:
                                     parent_token_base = "exec_parent_token",
                                     md5_tag_base = "exec.target->executable->path")
 
-            proc.exec.connect(exec_proc, {'pid': stencil_.int_values["exec.target->pid"], 
-                        'ppid': stencil_.int_values["exec.target->ppid"], 'global_seq_num': gsn})
+            #proc.exec.connect(exec_proc, {'pid': stencil_.int_values["exec.target->pid"], 
+            #            'ppid': stencil_.int_values["exec.target->ppid"], 'global_seq_num': gsn})
+            parent = self.getParentProcess(exec_proc.parent_token)
+            if parent != None:
+                rel = exec_proc.ran_on.relationship(endpoint)
+                if rel != None:
+                    exec_proc.ran_on.disconnect(endpoint)
+
+                parent.exec.connect(exec_proc, {'pid': stencil_.int_values["exec.target->pid"], 
+                            'ppid': stencil_.int_values["exec.target->ppid"],})
+            else:
+                rel = exec_proc.ran_on.relationship(endpoint)
+                if rel == None:
+                    exec_proc.ran_on.connect(endpoint, { })
             return processed
 
     def do_mac_event(self, evt, endpoint):
@@ -219,6 +232,11 @@ class Neo4jClient:
         event_type = stencil_.int_values["event_type"]
         es_message_version = stencil_.int_values["es_message->version"]
         gsn = stencil_.int_values["global_seq_num"]
+
+        if event_type == 909:  #TODO types
+            processed = True
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path", link = True)
+            return processed
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_EXEC:
             proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path", link = True)
@@ -522,20 +540,20 @@ class TransportServicer(transport_pb2_grpc.TransportServicer):
     """Provides methods that implement functionality of route guide server."""
     def __init__(self, txid):
         self.notify_exec = True
-        self.notify_create = True
-        self.notify_close = True
-        self.notify_open = True
-        self.notify_write = True
-        self.notify_signal = True
+        self.notify_create = False
+        self.notify_close = False
+        self.notify_open = False
+        self.notify_write = False
+        self.notify_signal = False
         self.notify_get_task = False
-        self.notify_fork = True
-        self.notify_mount = True 
-        self.notify_unmount = True
+        self.notify_fork = False
+        self.notify_mount = False 
+        self.notify_unmount = False
         self.notify_suspend_resume = False
-        self.notify_kextload = True
-        self.notify_kextunload = True
-        self.notify_exit = True
-        self.notify_mmap = True
+        self.notify_kextload = False
+        self.notify_kextunload = False
+        self.notify_exit = False
+        self.notify_mmap = False
         self.txid = txid
         #self.n4jclient = Neo4jClient()
         self.requestq = queue.Queue()
