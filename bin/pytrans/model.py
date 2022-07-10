@@ -54,7 +54,8 @@ class Endpoint(StructuredNode):
     operating_system = StringProperty(unique_index=True, required=True)
 
 class Process(StructuredNode):
-    audit_md5_token = ArrayProperty(unique_index=True, required=True)
+    process_token = ArrayProperty(unique_index=True, required=True)
+    parent_token = ArrayProperty(unique_index=True, required=False)
     executable_path = StringProperty(unique_index=True, required=True)
 
     filename = StringProperty(unique_index=False, required=False)

@@ -29,9 +29,9 @@ class Neo4jClient:
     def __init__(self):
         self.processed = False
 
-    def build_process_json_str(self, audit_md5_token_, hostname_, es_message_version_, executable_path_, pid_, ppid_, original_ppid_, is_platform_binary_, is_es_client_, filename_):
+    def build_process_json_str(self, process_token_, hostname_, es_message_version_, executable_path_, pid_, ppid_, original_ppid_, is_platform_binary_, is_es_client_, filename_):
         json_object = {
-            "audit_md5_token" : audit_md5_token_, 
+            "process_token" : process_token_, 
             "hostname" : hostname_,
             "es_message_version": es_message_version_,
             "executable_path" : executable_path_,
@@ -74,26 +74,29 @@ class Neo4jClient:
             endpoint = model.Endpoint(hostname = hostname, platform = platform, operating_system = operating_system).save()
         return endpoint
 
-    def create_process(self, stencil_, es_message_version_, executable_path_, filename_,
-                       pid_, ppid_, original_ppid_, is_platform_binary_, is_es_client_, audit_tag_base, md5_tag_base):   
-        mutex.acquire()
-        _audit_md5_token = [0]*12
-        _audit_md5_token[0] = stencil_.uint_values[audit_tag_base + "0"]
-        _audit_md5_token[1] = stencil_.uint_values[audit_tag_base + "1"]
-        _audit_md5_token[2] = stencil_.uint_values[audit_tag_base + "2"]
-        _audit_md5_token[3] = stencil_.uint_values[audit_tag_base + "3"]
-        _audit_md5_token[4] = stencil_.uint_values[audit_tag_base + "4"]
-        _audit_md5_token[5] = stencil_.uint_values[audit_tag_base + "5"]
-        _audit_md5_token[6] = stencil_.uint_values[audit_tag_base + "6"]
-        _audit_md5_token[7] = stencil_.uint_values[audit_tag_base + "7"]
-        _audit_md5_token[8] =  stencil_.uint_values[md5_tag_base + ".md5_0"]
-        _audit_md5_token[9] =  stencil_.uint_values[md5_tag_base + ".md5_1"]
-        _audit_md5_token[10] = stencil_.uint_values[md5_tag_base + ".md5_2"]
-        _audit_md5_token[11] = stencil_.uint_values[md5_tag_base + ".md5_3"]
+    def create_token(self, stencil_, token_base):
+        token = [0]*12
+        token[0] = stencil_.uint_values[token_base + "0"]
+        token[1] = stencil_.uint_values[token_base + "1"]
+        token[2] = stencil_.uint_values[token_base + "2"]
+        token[3] = stencil_.uint_values[token_base + "3"]
+        token[4] = stencil_.uint_values[token_base + "4"]
+        token[5] = stencil_.uint_values[token_base + "5"]
+        token[6] = stencil_.uint_values[token_base + "6"]
+        token[7] = stencil_.uint_values[token_base + "7"]
+        return token
 
-        proc = model.Process.nodes.first_or_none(audit_md5_token = _audit_md5_token)
+    def create_process(self, stencil_, es_message_version_, executable_path_, filename_,
+                       pid_, ppid_, original_ppid_, is_platform_binary_, is_es_client_,
+                       process_token_base, md5_tag_base, parent_token_base = "parent_token"):   
+        mutex.acquire()
+        process_token = self.create_token(stencil_, process_token_base)
+        parent_token = self.create_token(stencil_, parent_token_base)
+
+        proc = model.Process.nodes.first_or_none(process_token = process_token)
         if proc == None:
-            proc = model.Process(audit_md5_token = _audit_md5_token, 
+            proc = model.Process(process_token = process_token,
+                                    parent_token = parent_token,
                                     #hostname = hostname_,
                                     es_message_version= es_message_version_,
                                     executable_path = stencil_.string_values[executable_path_],
@@ -129,7 +132,14 @@ class Neo4jClient:
                                                 identifier = identifier_).save()
         return kext
 
-    def createActorProc(self, stencil_, endpoint, ev_ver, audit_tag_base, md5_tag_base, link = False):
+    def getParentProcess(self, parent_token):
+        mutex.acquire()
+        parent_proc = model.Process.nodes.first_or_none(process_token = parent_token)
+        mutex.release();
+
+        return parent_proc
+
+    def createActorProc(self, stencil_, endpoint, ev_ver, process_token_base, md5_tag_base, link = False, parent_token_base = "parent_token"):
         proc = self.create_process(stencil_,
                                     es_message_version_ = ev_ver,
                                     executable_path_ = "process->executable->path",
@@ -139,12 +149,23 @@ class Neo4jClient:
                                     original_ppid_ = "process->original_ppid",
                                     is_platform_binary_ = "process->is_platform_binary",
                                     is_es_client_ = "process->is_es_client",
-                                    audit_tag_base = audit_tag_base,
+                                    process_token_base = process_token_base,
+                                    parent_token_base = parent_token_base,
                                     md5_tag_base = md5_tag_base)
-        if link:
+
+        parent = self.getParentProcess(proc.parent_token)
+        if parent != None:
             rel = proc.ran_on.relationship(endpoint)
-            if rel == None:
-                proc.ran_on.connect(endpoint, { })
+            if rel != None:
+                proc.ran_on.delete(endpoint)
+
+            parent.exec.connect(proc, {'pid': stencil_.int_values["process->pid"], 
+                        'ppid': stencil_.int_values["process->ppid"],})
+        else:
+            if link:
+                rel = proc.ran_on.relationship(endpoint)
+                if rel == None:
+                    proc.ran_on.connect(endpoint, { })
         
         return proc
 
@@ -165,8 +186,14 @@ class Neo4jClient:
         es_message_version = stencil_.int_values["es_message->version"]
         gsn = stencil_.int_values["global_seq_num"]
 
+        if event_type == 909:  #TODO types
+            processed = True
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path", link = True)
+            return processed
+
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_EXEC:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path", link = True)
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_process_token", 
+            parent_token_base="process_parent_token", md5_tag_base = "process->executable->path", link = True)
             exec_proc = self.create_process(stencil_,
                                     es_message_version_ = es_message_version,
                                     executable_path_ = "exec.target->executable->path",
@@ -176,7 +203,8 @@ class Neo4jClient:
                                     original_ppid_ = "exec.target->original_ppid",
                                     is_platform_binary_ = "exec.target->is_platform_binary",
                                     is_es_client_ = "exec.target->is_es_client",
-                                    audit_tag_base = "exec.target->audit_token",
+                                    process_token_base = "exec_process_token",
+                                    parent_token_base = "exec_parent_token",
                                     md5_tag_base = "exec.target->executable->path")
 
             proc.exec.connect(exec_proc, {'pid': stencil_.int_values["exec.target->pid"], 
@@ -193,7 +221,7 @@ class Neo4jClient:
         gsn = stencil_.int_values["global_seq_num"]
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_EXEC:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path", link = True)
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path", link = True)
             exec_proc = self.create_process(stencil_,
                                     es_message_version_ = es_message_version,
                                     executable_path_ = "exec.target->executable->path",
@@ -203,7 +231,7 @@ class Neo4jClient:
                                     original_ppid_ = "exec.target->original_ppid",
                                     is_platform_binary_ = "exec.target->is_platform_binary",
                                     is_es_client_ = "exec.target->is_es_client",
-                                    audit_tag_base = "exec.target->audit_token",
+                                    process_token_base = "exec.target->audit_token",
                                     md5_tag_base = "exec.target->executable->path")
 
             proc.exec.connect(exec_proc, {'pid': stencil_.int_values["exec.target->pid"], 
@@ -211,7 +239,7 @@ class Neo4jClient:
             return processed
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_FORK:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path", link = True)
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path", link = True)
             corp = self.create_process(stencil_,
                                     es_message_version_ = es_message_version,
                                     executable_path_ = "fork.child->executable->path", 
@@ -221,14 +249,14 @@ class Neo4jClient:
                                     original_ppid_ = "fork.child->original_ppid",
                                     is_platform_binary_ = "fork.child->is_platform_binary",
                                     is_es_client_ = "fork.child->is_es_client",
-                                    audit_tag_base = "fork.child->audit_token",
+                                    process_token_base = "fork.child->audit_token",
                                     md5_tag_base = "fork.child->executable->path")
 
             proc.fork.connect(corp, {'fork_pid': stencil_.int_values["fork.child->pid"], 'global_seq_num': gsn})
             return processed
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_SIGNAL:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path")
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
             sig_proc = self.create_process(stencil_,
                                     es_message_version_ = es_message_version,
                                     executable_path_ = "signal.target->executable->path",
@@ -238,7 +266,7 @@ class Neo4jClient:
                                     original_ppid_ = "signal.target->original_ppid",
                                     is_platform_binary_ = "signal.target->is_platform_binary",
                                     is_es_client_ = "signal.target->is_es_client",
-                                    audit_tag_base = "signal.target->audit_token",
+                                    process_token_base = "signal.target->audit_token",
                                     md5_tag_base = "signal.target->executable->path")
 
             sig = stencil_.int_values["signal.sig"]
@@ -246,7 +274,7 @@ class Neo4jClient:
             return processed
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_GET_TASK:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path")
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
             tgt_proc = self.create_process(stencil_,
                                     es_message_version_ = es_message_version,
                                     executable_path_ = "get_task.target->executable->path",
@@ -256,7 +284,7 @@ class Neo4jClient:
                                     original_ppid_ = "get_task.target->original_ppid",
                                     is_platform_binary_ = "get_task.target->is_platform_binary",
                                     is_es_client_ = "get_task.target->is_es_client",
-                                    audit_tag_base = "get_task.target->audit_token",
+                                    process_token_base = "get_task.target->audit_token",
                                     md5_tag_base = "get_task.target->executable->path")
 
             tgt_pid = stencil_.int_values["get_task.target->pid"]
@@ -264,7 +292,7 @@ class Neo4jClient:
             return processed
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_PROC_SUSPEND_RESUME:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path")
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
             sr_pid = stencil_.int_values["proc_suspend_resume.target->pid"]
 
             child_proc = self.create_process(stencil_,
@@ -276,7 +304,7 @@ class Neo4jClient:
                                     original_ppid_ = "proc_suspend_resume.target->original_ppid",
                                     is_platform_binary_ = "proc_suspend_resume.target->is_platform_binary",
                                     is_es_client_ = "proc_suspend_resume.target->is_es_client",
-                                    audit_tag_base = "proc_suspend_resume.target->audit_token",
+                                    process_token_base = "proc_suspend_resume.target->audit_token",
                                     md5_tag_base = "proc_suspend_resume.target->executable->path")
  
             if stencil_.int_values["proc_suspend_resume.type"] == es_proc_suspend_resume_type_t.ES_PROC_SUSPEND_RESUME_TYPE_RESUME:
@@ -293,7 +321,7 @@ class Neo4jClient:
             if tgt == "":
                 return processed
 
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path")
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
 
             unix_time = int(stencil_.string_values["Unix Time"])
 
@@ -311,7 +339,7 @@ class Neo4jClient:
             return processed
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_CLOSE:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path")
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
             unix_time = int(stencil_.string_values["Unix Time"])
 
             tgt_file = self.create_file(stencil_,
@@ -332,7 +360,7 @@ class Neo4jClient:
             if tp == "":
                 return processed
 
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path")
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
             unix_time = int(stencil_.string_values["Unix Time"])
 
             tgt_file = self.create_file(stencil_,
@@ -353,7 +381,7 @@ class Neo4jClient:
             if tp == "":
                 return processed
 
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path")
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
             unix_time = int(stencil_.string_values["Unix Time"])
 
             tgt_file = self.create_file(stencil_,
@@ -370,7 +398,7 @@ class Neo4jClient:
             return processed
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_MOUNT:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path")
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
 
             tgt_file = self.create_file(stencil_,
                                         es_message_version_ = es_message_version,
@@ -389,7 +417,7 @@ class Neo4jClient:
             return processed
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_UNMOUNT:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path")
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
             # = int(stencil_.string_values["Unix Time"])
 
             tgt_file = self.create_file(stencil_,
@@ -408,7 +436,7 @@ class Neo4jClient:
             return processed
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_KEXTLOAD:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path")
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
             unix_time = int(stencil_.string_values["Unix Time"])
 
             tgt_kext = self.create_kext(stencil_,
@@ -419,7 +447,7 @@ class Neo4jClient:
             return processed
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_KEXTUNLOAD:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path")
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
             unix_time = int(stencil_.string_values["Unix Time"])
 
             tgt_kext = self.create_kext(stencil_,
@@ -430,7 +458,7 @@ class Neo4jClient:
             return processed
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_EXIT:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path")
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
             unix_time = int(stencil_.string_values["Unix Time"])
 
             exit_ = model.Exit(es_message_version = es_message_version,
@@ -442,7 +470,7 @@ class Neo4jClient:
             return processed
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_MMAP:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, audit_tag_base = "process->audit_token", md5_tag_base = "process->executable->path")
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
             unix_time = int(stencil_.string_values["Unix Time"])
 
             tgt_file = self.create_file(stencil_,
