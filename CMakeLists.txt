@@ -21,9 +21,9 @@ include (CTest)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#foreach(path ${CMAKE_PREFIX_PATH})
-    message("Prefix Path: " ${CMAKE_PREFIX_PATH})
-#endforeach(path)
+foreach(path ${CMAKE_PREFIX_PATH})
+    message("Prefix Path: " ${path})
+endforeach(path)
 
 if(MSVC)
     # Set compiler options.
