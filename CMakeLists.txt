@@ -18,6 +18,9 @@ project(skytrans)
 
 include (CTest)
 
+#option(SKYTRANS_PREFIX_PATH "Skytrans prefix search path")
+set(CMAKE_PREFIX_PATH ${SKYTRANS_PREFIX_PATH})
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
