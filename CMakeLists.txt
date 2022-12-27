@@ -24,9 +24,9 @@ set(CMAKE_PREFIX_PATH ${SKYTRANS_PREFIX_PATH})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#foreach(path ${CMAKE_PREFIX_PATH})
+foreach(path ${CMAKE_PREFIX_PATH})
     message("Prefix Path: " ${SKYTRANS_PREFIX_PATH})
-#endforeach(path)
+endforeach(path)
 
 if(MSVC)
     # Set compiler options.
