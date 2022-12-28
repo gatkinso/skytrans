@@ -19,13 +19,17 @@ project(skytrans)
 include (CTest)
 
 #option(SKYTRANS_PREFIX_PATH "Skytrans prefix search path")
-set(CMAKE_PREFIX_PATH ${SKYTRANS_PREFIX_PATH})
+set(CMAKE_PREFIX_PATH 
+    ${GPRC_PREFIX_PATH}
+    ${PB_PREFIX_PATH}
+    ${GTEST_PREFIX_PATH}
+)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 foreach(path ${CMAKE_PREFIX_PATH})
-    message("Prefix Path: " ${SKYTRANS_PREFIX_PATH})
+    message("Prefix Path: " ${path})
 endforeach(path)
 
 if(MSVC)
