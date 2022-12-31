@@ -19,7 +19,7 @@ add_library(${TARGETNAME} ${_SOURCES})
 
 target_link_libraries(${TARGETNAME} skytransproto ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
 
-install(TARGETS ${TARGETNAME} LIBRARY DESTINATION)
+install(TARGETS ${TARGETNAME} EXPORT skytransConfig IBRARY DESTINATION)
 install(FILES ${_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${TARGETNAME})
 
 export(
@@ -29,6 +29,6 @@ export(
     FILE "${CMAKE_CURRENT_BINARY_DIR}/${TARGETNAME}Config.cmake")
 
 install(
-    EXPORT ${TARGETNAME}
-    NAMESPACE syktrans::
+    EXPORT skytransConfig
+    NAMESPACE skytrans::
     DESTINATION "${CMAKE_INSTALL_DATADIR}/skytrans/cmake")
