@@ -24,7 +24,7 @@ install(FILES ${_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${TARGETNAME})
 
 export(
     TARGETS
-    ${TARGETNAME}
+    ${TARGETNAME} skytransproto stencil
     NAMESPACE skytrans::
     FILE "${CMAKE_CURRENT_BINARY_DIR}/${TARGETNAME}Config.cmake")
 
