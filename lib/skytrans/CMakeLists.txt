@@ -29,6 +29,6 @@ export(
     FILE "${CMAKE_CURRENT_BINARY_DIR}/${TARGETNAME}Config.cmake")
 
 install(
-    EXPORT ${TARGETNAME}Config
+    EXPORT ${TARGETNAME}
     NAMESPACE syktrans::
     DESTINATION "${CMAKE_INSTALL_DATADIR}/skytrans/cmake")
