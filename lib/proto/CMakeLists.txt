@@ -141,20 +141,20 @@ include(GNUInstallDirs)
 #install(FILES ${PROTOPY_RESULTS} DESTINATION ${CMAKE_INSTALL_BINDIR}/pytrans)
 
 install(TARGETS
-        ${TARGETNAME}
-    EXPORT skytransConfigy
+    ${TARGETNAME}
+    EXPORT skytransConfig
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 export(TARGETS
-        ${TARGETNAME}
+    ${TARGETNAME}
     NAMESPACE skytrans::
     FILE "${CMAKE_CURRENT_BINARY_DIR}/skytransConfig.cmake"
 )
 install(EXPORT
-        skytransConfigy
-    DESTINATION "${CMAKE_INSTALL_DATADIR}/${TARGETNAME}/cmake"
+    skytransConfig
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/${TARGETNAME}/cmake"
     NAMESPACE skytrans::
 )
 
