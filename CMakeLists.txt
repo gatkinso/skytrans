@@ -77,3 +77,4 @@ endif(UNIX AND NOT APPLE)
 add_subdirectory(lib)
 add_subdirectory(bin)
 add_subdirectory(tests/unit_tests)
+

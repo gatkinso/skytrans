@@ -36,8 +36,3 @@ target_link_libraries(${TARGETNAME} skytransproto)
 install(TARGETS ${TARGETNAME} LIBRARY DESTINATION)
 install(FILES ${_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${TARGETNAME})
 
-export(
-    TARGETS
-    ${TARGETNAME}
-    NAMESPACE skytrans::
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/${TARGETNAME}Config.cmake")
