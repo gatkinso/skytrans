@@ -35,6 +35,6 @@ export(TARGETS
 
 install(EXPORT
     skytransConfig
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake"
+    DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/cmake"
     NAMESPACE skytrans::
 )
