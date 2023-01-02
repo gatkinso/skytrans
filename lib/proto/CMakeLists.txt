@@ -129,11 +129,11 @@ add_custom_target(runGo ALL DEPENDS ${PROTOGO_RESULTS})
 
 add_library(${TARGETNAME} STATIC ${PROTOCPP_RESULTS} ${PROTOCPPgrpc_RESULTS})
 
-foreach(header in PROTOCPP_HEADER_RESULTS)
+foreach(header in ${PROTOCPP_HEADER_RESULTS})
     set_target_properties(${TARGETNAME} PROPERTIES PUBLIC_HEADER ${header})
 endforeach()
 
-foreach(header in PROTOCPPgrpc_HEADER_RESULTS)
+foreach(header in ${PROTOCPPgrpc_HEADER_RESULTS})
     set_target_properties(${TARGETNAME} PROPERTIES PUBLIC_HEADER ${header})
 endforeach()
 
