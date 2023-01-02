@@ -17,6 +17,7 @@ cmake_minimum_required(VERSION 3.15)
 project(skytrans)
 
 include (CTest)
+include(GNUInstallDirs)
 
 #option(SKYTRANS_PREFIX_PATH "Skytrans prefix search path")
 set(CMAKE_PREFIX_PATH 
@@ -77,4 +78,3 @@ endif(UNIX AND NOT APPLE)
 add_subdirectory(lib)
 add_subdirectory(bin)
 add_subdirectory(tests/unit_tests)
-
