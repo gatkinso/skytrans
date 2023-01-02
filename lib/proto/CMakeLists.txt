@@ -46,8 +46,6 @@ foreach(PROTO ${PROTO_FILES})
         ${PROTO_DIR}/${PROTO}.pb.h
     )
 
-    set_target_properties(${TARGETNAME} PROPERTIES PUBLIC_HEADER ${PROTO_DIR}/${PROTO}.pb.h)
-
     #cpp gRPC
     add_custom_command(
         OUTPUT  ${PROTO_DIR}/${PROTO}.grpc.pb.h
@@ -66,8 +64,6 @@ foreach(PROTO ${PROTO_FILES})
         ${PROTO_DIR}/${PROTO}.grpc.pb.cc
         ${PROTO_DIR}/${PROTO}.grpc.pb.h
     )
-
-    set_target_properties(${TARGETNAME} PROPERTIES PUBLIC_HEADER ${PROTO_DIR}/${PROTO}.grpc.pb.h)
 
     #python
     add_custom_command(
@@ -132,6 +128,14 @@ add_custom_target(runPy ALL DEPENDS ${PROTOPY_RESULTS})
 add_custom_target(runGo ALL DEPENDS ${PROTOGO_RESULTS})
 
 add_library(${TARGETNAME} STATIC ${PROTOCPP_RESULTS} ${PROTOCPPgrpc_RESULTS})
+
+foreach(header in PROTOCPP_HEADER_RESULTS)
+    set_target_properties(${TARGETNAME} PROPERTIES PUBLIC_HEADER ${header})
+endforeach()
+
+foreach(header in PROTOCPPgrpc_HEADER_RESULTS)
+    set_target_properties(${TARGETNAME} PROPERTIES PUBLIC_HEADER ${header})
+endforeach()
 
 if(MSVC)
     target_compile_options(${TARGETNAME} PRIVATE "/wd4800")
