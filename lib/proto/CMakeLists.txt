@@ -65,6 +65,8 @@ foreach(PROTO ${PROTO_FILES})
         ${PROTO_DIR}/${PROTO}.grpc.pb.h
     )
 
+    set_target_properties(${TARGETNAME} PROPERTIES PUBLIC_HEADER ${PROTOCPP_HEADER_RESULTS} ${PROTOCPPgrpc_HEADER_RESULTS})
+
     #python
     add_custom_command(
         OUTPUT  ${PROTO_DIR}/${PROTO}_pb2.py

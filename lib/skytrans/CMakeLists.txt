@@ -15,6 +15,8 @@ set(_SOURCES TransportClient.cpp)
 
 set(_HEADERS ${TARGET_INC_DIR}/TransportClient.h)
 
+set_target_properties(${TARGETNAME} PROPERTIES PUBLIC_HEADER ${_HEADERS})
+
 add_library(${TARGETNAME} ${_SOURCES})
 
 target_link_libraries(${TARGETNAME} skytransproto ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
@@ -35,6 +37,6 @@ export(TARGETS
 
 install(EXPORT
     skytransConfig
-    DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/cmake"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake"
     NAMESPACE skytrans::
 )

@@ -27,6 +27,8 @@ set(_SOURCES stencil.cpp)
 
 set(_HEADERS ${TARGET_INC_DIR}/stencil.h)
 
+set_target_properties(${TARGETNAME} PROPERTIES PUBLIC_HEADER ${_HEADERS})
+
 add_library(${TARGETNAME} STATIC ${_HEADERS} ${_SOURCES})
 
 add_dependencies(${TARGETNAME} skytransproto)
