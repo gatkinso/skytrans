@@ -15,8 +15,9 @@
 
 set(TARGETNAME stencil)
 
-set(TARGET_INC_DIR ${PROJECT_SOURCE_DIR}/include/${TARGETNAME})
+add_library(${TARGETNAME} STATIC)
 
+set(TARGET_INC_DIR ${PROJECT_SOURCE_DIR}/include/${TARGETNAME})
 set(_INC_DIRS ${TARGET_INC_DIR}
               ${PROJECT_SOURCE_DIR}/include/${TARGETNAME}
               ${PROJECT_BINARY_DIR}/skytransproto)
@@ -24,14 +25,14 @@ set(_INC_DIRS ${TARGET_INC_DIR}
 include_directories(${TARGETNAME} ${_INC_DIRS})
 
 set(_SOURCES stencil.cpp)
-
 set(_HEADERS ${TARGET_INC_DIR}/stencil.h)
 
-add_library(${TARGETNAME} STATIC ${_HEADERS} ${_SOURCES})
-
-foreach(header in ${_HEADERS})
-    set_target_properties(${TARGETNAME} PROPERTIES PUBLIC_HEADER ${header})
-endforeach()
+target_sources(${TARGETNAME}
+    PRIVATE ${_SOURCES}
+    PUBLIC FILE_SET HEADERS
+    BASE_DIRS ${TARGET_INC_DIR}
+    FILES ${_HEADERS}
+)
 
 add_dependencies(${TARGETNAME} skytransproto)
 
@@ -43,7 +44,7 @@ install(TARGETS
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/stencil
+    FILE_SET HEADERS DESTINATION  ${CMAKE_INSTALL_INCLUDEDIR}/${TARGETNAME}
 )
 
 export(TARGETS

@@ -2,34 +2,34 @@ cmake_minimum_required(VERSION 3.15)
 
 set(TARGETNAME skytrans)
 
-set(TARGET_INC_DIR ${PROJECT_SOURCE_DIR}/include/${TARGETNAME})
+add_library(${TARGETNAME} STATIC)
 
-set(_INC_DIRS ${TARGET_INC_DIR}
-#                ${PROJECT_SOURCE_DIR}/include/stencil
-                ${PROJECT_BINARY_DIR}/skytransproto
+set(TARGET_INC_DIR ${PROJECT_SOURCE_DIR}/include/${TARGETNAME})
+set(_INC_DIRS 
+    ${TARGET_INC_DIR}
+    ${PROJECT_BINARY_DIR}/skytransproto
 )
 
 include_directories(${TARGETNAME} ${_INC_DIRS})
 
 set(_SOURCES TransportClient.cpp)
-
 set(_HEADERS ${TARGET_INC_DIR}/TransportClient.h)
 
-add_library(${TARGETNAME} ${_SOURCES})
-
-foreach(header in ${_HEADERS})
-    set_target_properties(${TARGETNAME} PROPERTIES PUBLIC_HEADER ${header})
-endforeach()
+target_sources(${TARGETNAME}
+    PRIVATE ${_SOURCES}
+    PUBLIC FILE_SET HEADERS
+    BASE_DIRS ${TARGET_INC_DIR}
+    FILES ${_HEADERS}
+)
 
 target_link_libraries(${TARGETNAME} skytransproto ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
 
-install(TARGETS
-    ${TARGETNAME}
+install(TARGETS ${TARGETNAME}
     EXPORT skytransConfig
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/skytrans
+    FILE_SET HEADERS DESTINATION  ${CMAKE_INSTALL_INCLUDEDIR}/${TARGETNAME}
 )
 
 export(TARGETS
