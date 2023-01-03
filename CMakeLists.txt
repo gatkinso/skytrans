@@ -12,13 +12,21 @@
 #  express or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 #
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.15)
 
 project(skytrans)
 
 include (CTest)
+include(GNUInstallDirs)
 
-set(CMAKE_CXX_STANDARD 11)
+#option(SKYTRANS_PREFIX_PATH "Skytrans prefix search path")
+set(CMAKE_PREFIX_PATH 
+    ${GPRC_PREFIX_PATH}
+    ${PB_PREFIX_PATH}
+    ${GTEST_PREFIX_PATH}
+)
+
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 foreach(path ${CMAKE_PREFIX_PATH})
