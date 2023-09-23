@@ -78,7 +78,7 @@ func (s *server) DoEvent(id uint64, msg *pb.Request) error {
 	return nil
 }
 
-func (s *server) DoEvent2(id uint64, msg *pb.Request) error {
+func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 	start := time.Now()
 
 	session := s.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
@@ -129,7 +129,7 @@ func (s *server) DoEvent2(id uint64, msg *pb.Request) error {
 func (s *server) Exchange(ctx context.Context, req *pb.Request) (*pb.Response, error) {
 	//log.Printf(s.GetString(in))
 	s.id += 1
-	s.DoEvent2(s.id, req)
+	s.DoTransactionEvent(s.id, req)
 
 	var res pb.Response
 
