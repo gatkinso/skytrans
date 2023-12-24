@@ -12,7 +12,7 @@ import (
 
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 
-	pb "transport"
+	pb "gotrans/skytransproto/transport/proto"
 
 	"google.golang.org/protobuf/proto"
 	pi "google.golang.org/protobuf/runtime/protoimpl"
