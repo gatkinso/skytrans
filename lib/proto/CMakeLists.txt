@@ -98,14 +98,14 @@ foreach(PROTO ${PROTO_FILES})
 
     #go
     add_custom_command(
-        OUTPUT  ${PROTO_DIR}/${PROTO}.pb.go
+        OUTPUT  ${PROJECT_SOURCE_DIR}/transport/${PROTO}.pb.go
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
         COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-        ARGS    --proto_path=${CMAKE_CURRENT_SOURCE_DIR} --go_out=${PROTO_DIR}
+        ARGS    --proto_path=${CMAKE_CURRENT_SOURCE_DIR} --go_out=${PROJECT_SOURCE_DIR}/transport
                 ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
     )
     set(PROTOGO_RESULTS ${PROTOGO_RESULTS}
-        ${PROTO_DIR}/${PROTO}.pb.go
+        ${PROJECT_SOURCE_DIR}/transport/${PROTO}.pb.go
     )
 
     #go gRPC
@@ -113,14 +113,14 @@ foreach(PROTO ${PROTO_FILES})
     #--go-grpc_out=. --go-grpc_opt=paths=source_relative \
     #routeguide/route_guide.proto
     add_custom_command(
-        OUTPUT  ${PROTO_DIR}/${PROTO}.grpc.pb.go
+        OUTPUT  ${PROJECT_SOURCE_DIR}/transport/${PROTO}.grpc.pb.go
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
         COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-        ARGS    --proto_path=${CMAKE_CURRENT_SOURCE_DIR} --go_out=${PROTO_DIR} --go-grpc_out=${PROTO_DIR}
+        ARGS    --proto_path=${CMAKE_CURRENT_SOURCE_DIR} --go-grpc_out=${PROJECT_SOURCE_DIR}/transport
                 ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
     )
     set(PROTOGO_RESULTS ${PROTOGO_RESULTS}
-        ${PROTO_DIR}/${PROTO}.grpc.pb.go
+        ${PROJECT_SOURCE_DIR}/transport/${PROTO}.grpc.pb.go
     )
 endforeach(PROTO)
 

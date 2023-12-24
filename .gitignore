@@ -36,4 +36,7 @@ __build*/
 # Python
 *.pyc
 
+# Go
+*.pb.go
+
 .DS_Store
