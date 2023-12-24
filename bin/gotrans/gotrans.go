@@ -78,7 +78,7 @@ func (s *server) DoEvent(id uint64, msg *pb.Request) error {
 	return nil
 }
 
-func (s *server) DoEvent2(id uint64, msg *pb.Request) error {
+func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 	start := time.Now()
 
 	session := s.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
@@ -91,7 +91,6 @@ func (s *server) DoEvent2(id uint64, msg *pb.Request) error {
 		var s pb.Stencil
 		err := anypb.UnmarshalTo(item, &s, proto.UnmarshalOptions{})
 
-		//_, err = session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		_, err = tx.Run(
 			`MERGE (h:Host {hostname:$hostname}) 
 				 MERGE (p:Process {pid:$pid, pathname:$pathname, filename:$filename}) 
@@ -129,7 +128,7 @@ func (s *server) DoEvent2(id uint64, msg *pb.Request) error {
 func (s *server) Exchange(ctx context.Context, req *pb.Request) (*pb.Response, error) {
 	//log.Printf(s.GetString(in))
 	s.id += 1
-	s.DoEvent2(s.id, req)
+	s.DoTransactionEvent(s.id, req)
 
 	var res pb.Response
 
@@ -146,7 +145,7 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	driver_, err := neo4j.NewDriver("neo4j://192.168.135.199:7687", neo4j.BasicAuth("neo4j", "password", ""))
+	driver_, err := neo4j.NewDriver("neo4j://neo01:7687", neo4j.BasicAuth("neo4j", "password", ""))
 	if err != nil {
 		log.Fatalf("NewDriver failed")
 		return

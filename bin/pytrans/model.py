@@ -54,6 +54,7 @@ class Endpoint(StructuredNode):
     operating_system = StringProperty(unique_index=True, required=True)
 
 class Process(StructuredNode):
+    sequence = IntegerProperty(unique_index=True)
     process_token = ArrayProperty(unique_index=True, required=True)
     parent_token = ArrayProperty(unique_index=True, required=False)
     executable_path = StringProperty(unique_index=True, required=True)
@@ -79,6 +80,9 @@ class Process(StructuredNode):
     socks = RelationshipTo("Process", "SHUT_SOCKS", model=SuspendResume)
     gettask = RelationshipTo("Process", "GETTASK", model=GetTask)
     ran_on = RelationshipTo("Endpoint", "RAN_ON", model=RanOn)
+
+class Discovered(Process):
+    placeholder = StringProperty(unique_index=False, required=False)
 
 class FileOp(StructuredRel):
     op = StringProperty(unique_index=False, required=True)
@@ -116,7 +120,3 @@ class Kext(StructuredNode):
      load = RelationshipFrom(Process, "LOADED", model = KextLoad)
      unload = RelationshipFrom(Process, "UNLOADED", model = KextUnload)
 
-#class SendPointEvent(StructuredNode):
-#    hostname = StringProperty(unique_index=False, required=True)
-#    global_sequence_number = IntegerProperty(unique_index=False)
-#    es_message_version = IntegerProperty(unique_index=False)
