@@ -27,6 +27,10 @@ if(UNIX)
     file(MAKE_DIRECTORY ${PROTO_DIR}) 
 endif(UNIX)
 
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/skytransproto/")
+    file(MAKE_DIRECTORY "${PROJECT_SOURCE_DIR}/skytransproto/")
+endif()
+
 foreach(PROTO ${PROTO_FILES})
     #cpp Protobuf
     add_custom_command(
@@ -98,14 +102,14 @@ foreach(PROTO ${PROTO_FILES})
 
     #go
     add_custom_command(
-        OUTPUT  ${PROJECT_SOURCE_DIR}/transport/${PROTO}.pb.go
+        OUTPUT  ${PROJECT_SOURCE_DIR}/skytransproto/${PROTO}.pb.go
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
         COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-        ARGS    --proto_path=${CMAKE_CURRENT_SOURCE_DIR} --go_out=${PROJECT_SOURCE_DIR}/transport
+        ARGS    --proto_path=${CMAKE_CURRENT_SOURCE_DIR} --go_out=${PROJECT_SOURCE_DIR}/skytransproto
                 ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
     )
     set(PROTOGO_RESULTS ${PROTOGO_RESULTS}
-        ${PROJECT_SOURCE_DIR}/transport/${PROTO}.pb.go
+        ${PROJECT_SOURCE_DIR}/skytransproto/${PROTO}.pb.go
     )
 
     #go gRPC
@@ -113,14 +117,14 @@ foreach(PROTO ${PROTO_FILES})
     #--go-grpc_out=. --go-grpc_opt=paths=source_relative \
     #routeguide/route_guide.proto
     add_custom_command(
-        OUTPUT  ${PROJECT_SOURCE_DIR}/transport/${PROTO}.grpc.pb.go
+        OUTPUT  ${PROJECT_SOURCE_DIR}/skytransproto/${PROTO}.grpc.pb.go
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
         COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-        ARGS    --proto_path=${CMAKE_CURRENT_SOURCE_DIR} --go-grpc_out=${PROJECT_SOURCE_DIR}/transport
+        ARGS    --proto_path=${CMAKE_CURRENT_SOURCE_DIR} --go-grpc_out=${PROJECT_SOURCE_DIR}/skytransproto
                 ${CMAKE_CURRENT_SOURCE_DIR}/${PROTO}.proto
     )
     set(PROTOGO_RESULTS ${PROTOGO_RESULTS}
-        ${PROJECT_SOURCE_DIR}/transport/${PROTO}.grpc.pb.go
+        ${PROJECT_SOURCE_DIR}/skytransproto/${PROTO}.grpc.pb.go
     )
 endforeach(PROTO)
 
