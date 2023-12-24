@@ -47,29 +47,6 @@ class Neo4jClient:
         token[7] = stencil_.uint_values[token_base + "7"]
         return token
 
-    def create_process(self, stencil_, es_message_version_, executable_path_, filename_,
-                       pid_, ppid_, original_ppid_, is_platform_binary_, is_es_client_,
-                       process_token_base, md5_tag_base, parent_token_base = "parent_token"):   
-        mutex.acquire()
-        process_token = self.create_token(stencil_, process_token_base)
-        parent_token = self.create_token(stencil_, parent_token_base)
-
-        proc = model.Process.nodes.first_or_none(process_token = process_token)
-        if proc == None:
-            proc = model.Process(process_token = process_token,
-                                    parent_token = parent_token,
-                                    #hostname = hostname_,
-                                    es_message_version= es_message_version_,
-                                    executable_path = stencil_.string_values[executable_path_],
-                                    pid = stencil_.int_values[pid_], 
-                                    ppid = stencil_.int_values[ppid_], 
-                                    original_ppid = stencil_.int_values[original_ppid_], 
-                                    is_platform_binary = stencil_.bool_values[is_platform_binary_], 
-                                    is_es_client = stencil_.bool_values[is_es_client_],
-                                    filename = stencil_.string_values[filename_]).save()
-        mutex.release()
-        return proc
-
     def create_file(self, stencil_, es_message_version_, target_path_, md5_tag_base):
         file_mutex.acquire()
         _pathname_md5= [0]*4
@@ -99,6 +76,29 @@ class Neo4jClient:
         mutex.release();
 
         return parent_proc
+    
+    def create_process(self, stencil_, es_message_version_, executable_path_, filename_,
+                       pid_, ppid_, original_ppid_, is_platform_binary_, is_es_client_,
+                       process_token_base, md5_tag_base, parent_token_base = "parent_token"):   
+        mutex.acquire()
+        process_token = self.create_token(stencil_, process_token_base)
+        parent_token = self.create_token(stencil_, parent_token_base)
+
+        proc = model.Process.nodes.first_or_none(process_token = process_token)
+        if proc == None:
+            proc = model.Process(process_token = process_token,
+                                    parent_token = parent_token,
+                                    #hostname = hostname_,
+                                    es_message_version= es_message_version_,
+                                    executable_path = stencil_.string_values[executable_path_],
+                                    pid = stencil_.int_values[pid_], 
+                                    ppid = stencil_.int_values[ppid_], 
+                                    original_ppid = stencil_.int_values[original_ppid_], 
+                                    is_platform_binary = stencil_.bool_values[is_platform_binary_], 
+                                    is_es_client = stencil_.bool_values[is_es_client_],
+                                    filename = stencil_.string_values[filename_]).save()
+        mutex.release()
+        return proc
 
     def createActorProc(self, stencil_, endpoint, ev_ver, process_token_base, md5_tag_base, link = False, parent_token_base = "parent_token"):
         proc = self.create_process(stencil_,
@@ -267,8 +267,17 @@ class Neo4jClient:
                     fork_proc.ran_on.connect(endpoint, { })
             return processed
         
-            #proc.fork.connect(corp, {'fork_pid': stencil_.int_values["fork.child->pid"], 'global_seq_num': gsn})
-            #return processed
+        if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_EXIT:
+            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
+            unix_time = int(stencil_.string_values["Unix Time"])
+
+            exit_ = model.Exit(es_message_version = es_message_version,
+                                        unix_time = unix_time,
+                                        pid = proc.pid).save()
+
+            stat_ = stencil_.int_values["exit.stat"]
+            exit_.proc.connect(proc, { 'global_seq_num': gsn, 'stat': stat_ })
+            return processed
 
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_SIGNAL:
             proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
@@ -472,18 +481,6 @@ class Neo4jClient:
             tgt_kext.unload.connect(proc, { 'unix_time' : unix_time, 'global_seq_num': gsn })
             return processed
 
-        if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_EXIT:
-            proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
-            unix_time = int(stencil_.string_values["Unix Time"])
-
-            exit_ = model.Exit(es_message_version = es_message_version,
-                                        unix_time = unix_time,
-                                        pid = proc.pid).save()
-
-            stat_ = stencil_.int_values["exit.stat"]
-            exit_.proc.connect(proc, { 'global_seq_num': gsn, 'stat': stat_ })
-            return processed
-
         if event_type == es_event_type_t.ES_EVENT_TYPE_NOTIFY_MMAP:
             proc = self.createActorProc(stencil_, endpoint, ev_ver = es_message_version, process_token_base = "process_token", md5_tag_base = "process->executable->path")
             unix_time = int(stencil_.string_values["Unix Time"])
@@ -549,7 +546,7 @@ class TransportServicer(transport_pb2_grpc.TransportServicer):
         self.notify_suspend_resume = False
         self.notify_kextload = False
         self.notify_kextunload = False
-        self.notify_exit = False
+        self.notify_exit = True
         self.notify_mmap = False
         self.txid = txid
         #self.n4jclient = Neo4jClient()

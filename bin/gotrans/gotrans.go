@@ -91,7 +91,6 @@ func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 		var s pb.Stencil
 		err := anypb.UnmarshalTo(item, &s, proto.UnmarshalOptions{})
 
-		//_, err = session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		_, err = tx.Run(
 			`MERGE (h:Host {hostname:$hostname}) 
 				 MERGE (p:Process {pid:$pid, pathname:$pathname, filename:$filename}) 
@@ -146,7 +145,7 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	driver_, err := neo4j.NewDriver("neo4j://192.168.135.199:7687", neo4j.BasicAuth("neo4j", "password", ""))
+	driver_, err := neo4j.NewDriver("neo4j://neo01:7687", neo4j.BasicAuth("neo4j", "password", ""))
 	if err != nil {
 		log.Fatalf("NewDriver failed")
 		return
