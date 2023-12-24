@@ -100,7 +100,7 @@ TEST_F(StencilUnitTest, get_value_string)
     ASSERT_EQ(true, rc);
 
     std::string json_str;
-    google::protobuf::util::Status ret = google::protobuf::util::MessageToJsonString(stencil.get_proto(), &json_str);
+    auto ret = google::protobuf::util::MessageToJsonString(stencil.get_proto(), &json_str);
 
     ASSERT_TRUE(ret.ok());
 

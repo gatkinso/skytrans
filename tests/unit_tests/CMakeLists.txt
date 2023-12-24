@@ -27,7 +27,7 @@ set(UNIT_TEST_JSON stencil_unit_test.json)
 
 add_executable(${TARGETNAME} main.cpp ${UNIT_TESTS})
 
-target_link_libraries(${TARGETNAME} stencil GTest::GTest GTest::Main ${PLATFORM_LINK_LIBS})
+target_link_libraries(${TARGETNAME} stencil GTest::GTest GTest::Main protobuf::libprotobuf)
 
 gtest_discover_tests(${TARGETNAME} TEST_PREFIX skytrans_unit_test:)
 
