@@ -17,6 +17,3 @@ require (
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 )
 
-require transport v0.0.0
-
-replace transport v0.0.0 => ./transport
