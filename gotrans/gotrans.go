@@ -84,6 +84,33 @@ func (s *server) DoEvent(id uint64, msg *pb.Request) error {
 	return nil
 }
 
+/*
+	func (s *server) DoSetupIndicies() error {
+		session := s.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+		defer session.Close()
+
+		tx, _ := session.BeginTransaction()
+
+		//log.Printf("Batch %v  (%v).....", id, len(msg.GetImpl()))
+		_, err := tx.Run(
+			`MERGE (h:Host {hostname:$hostname})`,
+			map[string]interface{}{
+				"hostname": msg.Meta.Data.GetStringValues()["hostname"]})
+
+		if err != nil {
+			log.Printf("Run on msg data %dfailed %v\n", id, err)
+			return err
+		}
+	}
+
+type ProcessItem struct {
+	start_time        uint `bson:"start_time"`
+	pid               uint `bson:"pid"`
+	parent_start_time uint `bson:"parent_start_time"`
+	ppid              uint `bson:"ppid"`
+}
+*/
+
 func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 	start := time.Now()
 
@@ -91,6 +118,8 @@ func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 	defer session.Close()
 
 	tx, _ := session.BeginTransaction()
+
+	hostname := msg.Meta.Data.GetStringValues()["Hostname"]
 
 	log.Printf("Batch %v  (%v).....", id, len(msg.GetImpl()))
 
@@ -103,20 +132,24 @@ func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 			return err
 		}
 
-		teat1 := s.GetUintValues()["actor_start_time"]
+		event_type := s.GetUintValues()["event_type"]
+
+		var cypher_query_str string
+		switch event_type {
+		case 909:
+			cypher_query_str =
+				`MERGE (h:Host {hostname:$hostname})
+		 		MERGE (actor:Process {start_time:$start_time, pid:$pid, parent_start_time:$parent_start_time, ppid:$ppid})
+ 				ON CREATE
+					SET actor.pathname = $pathname, actor.filename = $filename
+		 		MERGE (actor)-[r:RAN_ON]-(h)`
+		}
 
 		_, err = tx.Run(
-			`MERGE (h:Host {hostname:$hostname})
-			 MERGE (actor:Process {start_time:$start_time, pid:$pid, parent_start_time:$parent_start_time, ppid:$ppid, pathname:$pathname, filename:$filename})
-			 MERGE (actor)-[r:RAN_ON]-(h)`,
+			cypher_query_str,
 			map[string]interface{}{
-				"hostname": msg.Meta.Data.GetStringValues()["hostname"], //this only needs to happen once.
-
-				"session_id": s.GetUint64Values()["session_id"],
-
-				"sequence_num": s.GetUint64Values()["sequence_num"],
-
-				"start_time":        teat1,
+				"hostname":          hostname,
+				"start_time":        s.GetUintValues()["actor_start_time"],
 				"pid":               s.GetUintValues()["actor_pid"],
 				"parent_start_time": s.GetUintValues()["parent_start_time"],
 				"ppid":              s.GetUintValues()["actor_ppid"],
@@ -147,7 +180,7 @@ func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 	return nil
 }
 
-// SayHello implements TransportServer
+// Implements TransportServer
 func (s *server) Exchange(ctx context.Context, req *pb.Request) (*pb.Response, error) {
 	//log.Printf(s.GetString(in))
 	s.id += 1
