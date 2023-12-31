@@ -8,6 +8,8 @@ import (
 	"net"
 	"time"
 
+	es "github.com/gatkinso/gomac/endpointsecurity"
+
 	"google.golang.org/grpc"
 
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
@@ -84,32 +86,12 @@ func (s *server) DoEvent(id uint64, msg *pb.Request) error {
 	return nil
 }
 
-/*
-	func (s *server) DoSetupIndicies() error {
-		session := s.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
-		defer session.Close()
-
-		tx, _ := session.BeginTransaction()
-
-		//log.Printf("Batch %v  (%v).....", id, len(msg.GetImpl()))
-		_, err := tx.Run(
-			`MERGE (h:Host {hostname:$hostname})`,
-			map[string]interface{}{
-				"hostname": msg.Meta.Data.GetStringValues()["hostname"]})
-
-		if err != nil {
-			log.Printf("Run on msg data %dfailed %v\n", id, err)
-			return err
-		}
-	}
-
 type ProcessItem struct {
-	start_time        uint `bson:"start_time"`
-	pid               uint `bson:"pid"`
-	parent_start_time uint `bson:"parent_start_time"`
-	ppid              uint `bson:"ppid"`
+	actor_start_time  uint32 `bson:"start_time"`
+	actor_pid         uint32 `bson:"pid"`
+	parent_start_time uint32 `bson:"parent_start_time"`
+	actor_ppid        uint32 `bson:"ppid"`
 }
-*/
 
 func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 	start := time.Now()
@@ -132,32 +114,124 @@ func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 			return err
 		}
 
-		event_type := s.GetUintValues()["event_type"]
+		var cypherQueryStr string
+		var variableMap map[string]interface{}
 
-		var cypher_query_str string
-		switch event_type {
-		case 909:
-			cypher_query_str =
-				`MERGE (h:Host {hostname:$hostname})
-		 		MERGE (actor:Process {start_time:$start_time, pid:$pid, parent_start_time:$parent_start_time, ppid:$ppid})
- 				ON CREATE
-					SET actor.pathname = $pathname, actor.filename = $filename
-		 		MERGE (actor)-[r:RAN_ON]-(h)`
+		processItem := ProcessItem{
+			actor_start_time:  s.GetUintValues()["actor_start_time"],
+			actor_pid:         s.GetUintValues()["actor_pid"],
+			parent_start_time: s.GetUintValues()["parent_start_time"],
+			actor_ppid:        s.GetUintValues()["actor_ppid"],
 		}
 
-		_, err = tx.Run(
-			cypher_query_str,
-			map[string]interface{}{
+		event_type := s.GetUintValues()["event_type"]
+		switch event_type {
+		case uint32(es.ES_EVENT_TYPE_NOTIFY_EXEC):
+			cypherQueryStr =
+				`MERGE (actor:Process {start_time:$actor_start_time, pid:$actor_pid})
+						ON CREATE
+							SET actor.ppid = $actor_ppid, 
+							    actor.parent_start_time = $parent_start_time, 
+							    actor.pathname = $actor_pathname, 
+								actor.filename = $actor_filename
+						WITH actor
+						MERGE (target:Process {start_time:$target_start_time, pid:$tgt_pid, parent_start_time:$actor_start_time, ppid:$tgt_ppid})
+						ON CREATE
+							SET target.pathname = $tgt_pathname, target.filename = $tgt_filename
+						WITH actor, target
+						MERGE (actor)-[r:EXEC]-(target)`
+
+			variableMap = map[string]interface{}{
 				"hostname":          hostname,
-				"start_time":        s.GetUintValues()["actor_start_time"],
-				"pid":               s.GetUintValues()["actor_pid"],
+				"actor_start_time":  s.GetUintValues()["actor_start_time"],
+				"actor_pid":         s.GetUintValues()["actor_pid"],
 				"parent_start_time": s.GetUintValues()["parent_start_time"],
-				"ppid":              s.GetUintValues()["actor_ppid"],
+				"actor_ppid":        s.GetUintValues()["actor_ppid"],
+				"actor_pathname":    s.GetStringValues()["actor_executable_path"],
+				"actor_filename":    s.GetStringValues()["actor_executable_name"],
+				"target_start_time": s.GetUintValues()["target_start_time"],
+				"tgt_pid":           s.GetUintValues()["tgt_pid"],
+				"tgt_ppid":          s.GetUintValues()["tgt_ppid"],
+				"tgt_pathname":      s.GetStringValues()["tgt_executable_path"],
+				"tgt_filename":      s.GetStringValues()["tgt_executable_name"]}
+		case uint32(es.ES_EVENT_TYPE_NOTIFY_FORK):
+			cypherQueryStr =
+				`MERGE (actor:Process {start_time:$actor_start_time, pid:$actor_pid})
+						ON CREATE
+							SET actor.ppid = $actor_ppid, 
+							    actor.parent_start_time = $parent_start_time, 
+							    actor.pathname = $actor_pathname, 
+								actor.filename = $actor_filename
+						WITH actor
+						MERGE (target:Process {start_time:$child_start_time, pid:$tgt_pid, parent_start_time:$actor_start_time, ppid:$tgt_ppid})
+						ON CREATE
+							SET target.pathname = $tgt_pathname, target.filename = $tgt_filename
+						WITH actor, target
+						MERGE (actor)-[r:FORK]-(target)`
+
+			variableMap = map[string]interface{}{
+				"hostname":          hostname,
+				"actor_start_time":  s.GetUintValues()["actor_start_time"],
+				"actor_pid":         s.GetUintValues()["actor_pid"],
+				"parent_start_time": s.GetUintValues()["parent_start_time"],
+				"actor_ppid":        s.GetUintValues()["actor_ppid"],
+				"actor_pathname":    s.GetStringValues()["actor_executable_path"],
+				"actor_filename":    s.GetStringValues()["actor_executable_name"],
+				"child_start_time":  s.GetUintValues()["child_start_time"],
+				"tgt_pid":           s.GetUintValues()["tgt_pid"],
+				"tgt_ppid":          s.GetUintValues()["tgt_ppid"],
+				"tgt_pathname":      s.GetStringValues()["tgt_executable_path"],
+				"tgt_filename":      s.GetStringValues()["tgt_executable_name"]}
+
+		case uint32(es.ES_EVENT_TYPE_LAST + 1): //TODO define proper value type for discovered processes
+			if processItem.actor_pid == 1 {
+				cypherQueryStr =
+					`MERGE (h:Host {hostname:$hostname})
+					WITH h
+					MERGE (actor:Process:Discovered {start_time:$actor_start_time, pid:$actor_pid})
+					ON CREATE
+						SET 
+							actor.pathname = $pathname, 
+							actor.filename = $filename, 
+							actor.parent_start_time = $parent_start_time, 
+							actor.ppid = $actor_ppid
+					WITH actor, h
+					MERGE (actor)-[r:RAN_ON]-(h)`
+			} else {
+				cypherQueryStr =
+					`MERGE (h:Host {hostname:$hostname})
+					WITH h
+					MERGE (parent:Process:Discovered {start_time:$parent_start_time, pid:$actor_ppid})
+					MERGE (actor:Process:Discovered {start_time:$actor_start_time, pid:$actor_pid})
+					ON CREATE
+						SET 
+							actor.pathname = $pathname, 
+							actor.filename = $filename, 
+							actor.parent_start_time = $parent_start_time, 
+							actor.ppid = $actor_ppid
+					WITH parent, actor
+					FOREACH(ignoreMe IN CASE WHEN parent IS NOT null THEN [1] ELSE [] END|
+						MERGE (actor)-[r:CHILD]-(parent)
+					)	
+					FOREACH(ignoreMe IN CASE WHEN parent IS null THEN [1] ELSE [] END|
+						MERGE (actor)-[r:RAN_ON]-(h)
+					)`
+			}
+
+			variableMap = map[string]interface{}{
+				"hostname":          hostname,
+				"actor_start_time":  s.GetUintValues()["actor_start_time"],
+				"actor_pid":         s.GetUintValues()["actor_pid"],
+				"parent_start_time": s.GetUintValues()["parent_start_time"],
+				"actor_ppid":        s.GetUintValues()["actor_ppid"],
 				"pathname":          s.GetStringValues()["actor_executable_path"],
-				"filename":          s.GetStringValues()["actor_executable_name"]})
+				"filename":          s.GetStringValues()["actor_executable_name"]}
+		}
+
+		res, err := tx.Run(cypherQueryStr, variableMap)
 
 		if err != nil {
-			log.Printf("Run %d failed %v\n", i, err)
+			log.Printf("Run %d failed %v%v\n", i, err, res)
 			return err
 		}
 
