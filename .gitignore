@@ -38,6 +38,6 @@ __build*/
 
 # Go
 *.pb.go
-gotrans
+gotrans/gotrans
 
 .DS_Store
