@@ -129,17 +129,24 @@ func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 		case uint32(es.ES_EVENT_TYPE_NOTIFY_EXEC):
 			cypherQueryStr =
 				`MERGE (actor:Process {start_time:$actor_start_time, pid:$actor_pid})
-						ON CREATE
-							SET actor.ppid = $actor_ppid, 
-							    actor.parent_start_time = $parent_start_time, 
-							    actor.pathname = $actor_pathname, 
-								actor.filename = $actor_filename
-						WITH actor
-						MERGE (target:Process {start_time:$target_start_time, pid:$tgt_pid, parent_start_time:$actor_start_time, ppid:$tgt_ppid})
-						ON CREATE
-							SET target.pathname = $tgt_pathname, target.filename = $tgt_filename
-						WITH actor, target
-						MERGE (actor)-[r:EXEC]-(target)`
+				ON CREATE
+					SET actor.ppid = $actor_ppid, 
+						actor.parent_start_time = $parent_start_time, 
+						actor.pathname = $actor_pathname, 
+						actor.filename = $actor_filename
+				WITH actor
+				MERGE (target:Process:Execed {start_time:$target_start_time, pid:$tgt_pid})
+				ON CREATE
+					SET target.created = true,
+						target.parent_start_time = $actor_start_time, 
+						target.ppid = $tgt_ppid,
+						target.pathname = $tgt_pathname, 
+						target.filename = $tgt_filename
+				WITH actor, target
+				FOREACH(ignoreMe IN CASE WHEN target.created = true THEN [1] ELSE [] END|
+					SET target.created = false
+					MERGE (actor)-[r:EXEC]-(target)
+				)`
 
 			variableMap = map[string]interface{}{
 				"hostname":          hostname,
@@ -157,17 +164,24 @@ func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 		case uint32(es.ES_EVENT_TYPE_NOTIFY_FORK):
 			cypherQueryStr =
 				`MERGE (actor:Process {start_time:$actor_start_time, pid:$actor_pid})
-						ON CREATE
-							SET actor.ppid = $actor_ppid, 
-							    actor.parent_start_time = $parent_start_time, 
-							    actor.pathname = $actor_pathname, 
-								actor.filename = $actor_filename
-						WITH actor
-						MERGE (target:Process {start_time:$child_start_time, pid:$tgt_pid, parent_start_time:$actor_start_time, ppid:$tgt_ppid})
-						ON CREATE
-							SET target.pathname = $tgt_pathname, target.filename = $tgt_filename
-						WITH actor, target
-						MERGE (actor)-[r:FORK]-(target)`
+				ON CREATE
+					SET actor.ppid = $actor_ppid, 
+						actor.parent_start_time = $parent_start_time, 
+						actor.pathname = $actor_pathname, 
+						actor.filename = $actor_filename
+				WITH actor
+				MERGE (target:Process:Forked {start_time:$child_start_time, pid:$tgt_pid})
+				ON CREATE
+					SET target.created = true,
+						target.parent_start_time = $actor_start_time, 
+						target.ppid = $tgt_ppid,
+						target.pathname = $tgt_pathname, 
+						target.filename = $tgt_filename
+				WITH actor, target
+				FOREACH(ignoreMe IN CASE WHEN target.created = true THEN [1] ELSE [] END|
+					SET target.created = false
+					MERGE (actor)-[r:FORK]-(target)
+				)`
 
 			variableMap = map[string]interface{}{
 				"hostname":          hostname,
