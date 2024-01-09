@@ -16,6 +16,9 @@
 set(TARGETNAME skytransproto)
 
 set(PROTO_FILES
+    endpointsecurity
+    event
+
     example
     stencil
     transport
