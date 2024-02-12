@@ -17,6 +17,7 @@ import (
 
 func (s *Server) DoTransactionItem(ctx context.Context, msg *pb.Request) error {
 	start := time.Now()
+	s.ID++
 
 	for _, item := range msg.GetEvents() {
 
@@ -36,13 +37,14 @@ func (s *Server) DoTransactionItem(ctx context.Context, msg *pb.Request) error {
 	duration := time.Since(start)
 	secs := float32(duration.Milliseconds()) / 1000
 
-	log.Printf("Finshed Item Batch (%v) in %v ms. Rate: %v", len(msg.GetEvents()), duration.Milliseconds(), float32(len(msg.GetEvents()))/secs)
+	log.Printf("Finshed Item Batch (%d) of count (%v) in %v ms. Rate: %v", s.ID, len(msg.GetEvents()), duration.Milliseconds(), float32(len(msg.GetEvents()))/secs)
 
 	return nil
 }
 
 func (s *Server) DoTransactionEvent(ctx context.Context, msg *pb.Request) error {
 	start := time.Now()
+	s.ID++
 
 	for _, item := range msg.GetEvents() {
 
@@ -88,13 +90,13 @@ func (s *Server) DoTransactionEvent(ctx context.Context, msg *pb.Request) error 
 
 	secs := float32(duration.Milliseconds()) / 1000
 
-	log.Printf("Finshed Event Batch (%v) in %v ms. Rate: %v", len(msg.GetEvents()), duration.Milliseconds(), float32(len(msg.GetEvents()))/secs)
+	log.Printf("Finshed Batch (%d) of count (%v) in %v ms. Rate: %v", s.ID, len(msg.GetEvents()), duration.Milliseconds(), float32(len(msg.GetEvents()))/secs)
 
 	return nil
 }
 
 func (s *Server) Exchange(ctx context.Context, req *pb.Request) (*pb.Response, error) {
-	s.DoTransactionItem(ctx, req)
+	//s.DoTransactionItem(ctx, req)
 	s.DoTransactionEvent(ctx, req)
 
 	var res pb.Response
