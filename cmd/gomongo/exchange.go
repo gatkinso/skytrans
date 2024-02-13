@@ -15,36 +15,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (s *Server) DoTransactionItem(ctx context.Context, msg *pb.Request) error {
-	start := time.Now()
-	s.ID++
-
-	for _, item := range msg.GetEvents() {
-
-		var err error
-
-		err = nil
-
-		_, err = itemCollection.InsertOne(ctx, item)
-		if err != nil {
-			return status.Errorf(
-				codes.Internal,
-				fmt.Sprintf("Internal error: %v\n", err),
-			)
-		}
-	}
-
-	duration := time.Since(start)
-	secs := float32(duration.Milliseconds()) / 1000
-
-	log.Printf("Finshed Item Batch (%d) of count (%v) in %v ms. Rate: %v", s.ID, len(msg.GetEvents()), duration.Milliseconds(), float32(len(msg.GetEvents()))/secs)
-
-	return nil
-}
-
 func (s *Server) DoTransactionEvent(ctx context.Context, msg *pb.Request) error {
 	start := time.Now()
-	s.ID++
+
+	id := msg.GetMeta().Data.Uint64Values["req_id"]
 
 	for _, item := range msg.GetEvents() {
 
@@ -90,13 +64,12 @@ func (s *Server) DoTransactionEvent(ctx context.Context, msg *pb.Request) error 
 
 	secs := float32(duration.Milliseconds()) / 1000
 
-	log.Printf("Finshed Batch (%d) of count (%v) in %v ms. Rate: %v", s.ID, len(msg.GetEvents()), duration.Milliseconds(), float32(len(msg.GetEvents()))/secs)
+	log.Printf("Finshed Batch (%d) of count (%d) in %v ms. Rate: %v", id, len(msg.GetEvents()), duration.Milliseconds(), float32(len(msg.GetEvents()))/secs)
 
 	return nil
 }
 
 func (s *Server) Exchange(ctx context.Context, req *pb.Request) (*pb.Response, error) {
-	//s.DoTransactionItem(ctx, req)
 	s.DoTransactionEvent(ctx, req)
 
 	var res pb.Response

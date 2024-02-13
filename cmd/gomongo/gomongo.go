@@ -22,7 +22,6 @@ var addr string = "0.0.0.0:1967"
 
 type Server struct {
 	pb.TransportServer
-	ID int64
 }
 
 func main() {
