@@ -24,7 +24,7 @@ message EsProcess {
 
     uint32 pid = 2;
     uint32 ppid = 3;
-    uint64 start_time = 4;
+    uint32 start_time = 4;
     uint64 start_time_ms = 5;
     string pathname = 6;
     bool discovered = 7;
@@ -48,6 +48,7 @@ message EsFork {
 message EsExit {
     uint64 global_sequence_num = 1;
     uint32 stat = 2;
+    uint64 exit_time_ms = 3;
 }
 
 message EsEvent {

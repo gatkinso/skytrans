@@ -221,14 +221,14 @@ TEST_F(StencilUnitTest, set_value_int64)
     bool rc = stencil.read_file("stencil_unit_test.json");
     ASSERT_EQ(true, rc);
 
-    rc = stencil.set_value_int64("a_field", -0x0540BE400);
+    rc = stencil.set_value_int64("a_field", -0x700000000000000F);
     ASSERT_EQ(true, rc);
 
     int64_t val = 0;
     bool ret = stencil.get_value_int64("a_field", val, 0);
 
     ASSERT_TRUE(ret);
-    ASSERT_TRUE(val == -0x0540BE400);
+    ASSERT_TRUE(val == -0x700000000000000F);
 }
 
 TEST_F(StencilUnitTest, set_value_uint64)
@@ -238,14 +238,14 @@ TEST_F(StencilUnitTest, set_value_uint64)
     bool rc = stencil.read_file("stencil_unit_test.json");
     ASSERT_EQ(true, rc);
 
-    rc = stencil.set_value_uint64("a_field", 0x2540BE400);
+    rc = stencil.set_value_uint64("a_field", 0xF00000000000000F);
     ASSERT_EQ(true, rc);
 
     uint64_t val = 0;
     bool ret = stencil.get_value_uint64("a_field", val, 0);
 
     ASSERT_TRUE(ret);
-    ASSERT_TRUE(val == 0x2540BE400);
+    ASSERT_TRUE(val == 0xF00000000000000F);
 }
 
 TEST_F(StencilUnitTest, set_value_bool)
