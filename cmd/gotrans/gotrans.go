@@ -37,55 +37,6 @@ func (s *server) GetString(msg *pb.Request) string {
 	return pi.X.MessageStringOf(msg)
 }
 
-func (s *server) DoEvent(id uint64, msg *pb.Request) error {
-	start := time.Now()
-
-	session := s.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
-	defer session.Close()
-
-	//log.Printf("Batch %v  (%v).....", id, len(msg.GetImpl()))
-	for i, item := range msg.GetImpl() {
-		var s pb.Stencil
-		err := anypb.UnmarshalTo(item, &s, proto.UnmarshalOptions{})
-
-		if err != nil {
-			log.Printf("UnmarshalTo failed: %v\n", err)
-			return err
-		}
-
-		_, err = session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
-			result, err := transaction.Run(
-				`MERGE (h:Host {hostname:$hostname}) 
-				 MERGE (p:Process {pid:$pid, ppid:$ppid, pathname:$actor_executable_path, start_time:$actor_start_time}) 
-				 MERGE (p)-[r:RAN_ON]-(h)`,
-				map[string]interface{}{
-					"hostname":              msg.Meta.Data.GetStringValues()["hostname"],
-					"pid":                   s.GetIntValues()["actor_pid"],
-					"ppid":                  s.GetIntValues()["actor_ppid"],
-					"actor_start_time":      s.GetInt64Values()["actor_start_time"],
-					"actor_executable_path": s.GetStringValues()["actor_executable_path"]})
-			if err != nil {
-				log.Printf("Run failed %v", i)
-				return nil, err
-			}
-
-			return result.Consume()
-		})
-		if err != nil {
-			log.Printf("WriteTransaction failed: %v\n", err)
-			return err
-		}
-	}
-
-	duration := time.Since(start)
-
-	secs := float32(duration.Milliseconds()) / 1000
-
-	log.Printf("Finshed Batch %v (%v) in %v ms. Rate: %v", id, len(msg.GetImpl()), duration.Milliseconds(), float32(len(msg.GetImpl()))/secs)
-
-	return nil
-}
-
 type ProcessItem struct {
 	actor_start_time  uint32 `bson:"start_time"`
 	actor_pid         uint32 `bson:"pid"`
