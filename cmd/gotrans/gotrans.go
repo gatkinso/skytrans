@@ -80,24 +80,24 @@ func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 		case uint32(es.ES_EVENT_TYPE_NOTIFY_EXEC):
 			cypherQueryStr =
 				`MERGE (actor:Process {start_time:$actor_start_time, pid:$actor_pid})
-				ON CREATE
-					SET actor.ppid = $actor_ppid, 
-						actor.parent_start_time = $parent_start_time, 
-						actor.pathname = $actor_pathname, 
-						actor.filename = $actor_filename
-				WITH actor
-				MERGE (target:Process:Execed {start_time:$target_start_time, pid:$tgt_pid})
-				ON CREATE
-					SET target.created = true,
-						target.parent_start_time = $actor_start_time, 
-						target.ppid = $tgt_ppid,
-						target.pathname = $tgt_pathname, 
-						target.filename = $tgt_filename
-				WITH actor, target
-				FOREACH(ignoreMe IN CASE WHEN target.created = true THEN [1] ELSE [] END|
-					SET target.created = false
-					MERGE (actor)-[r:EXEC]-(target)
-				)`
+					ON CREATE
+						SET actor.ppid = $actor_ppid,
+							actor.parent_start_time = $parent_start_time,
+							actor.pathname = $actor_pathname,
+							actor.filename = $actor_filename
+					WITH actor
+					MERGE (target:Process:Execed {start_time:$target_start_time, pid:$tgt_pid})
+					ON CREATE
+						SET target.created = true,
+							target.parent_start_time = $actor_start_time,
+							target.ppid = $tgt_ppid,
+							target.pathname = $tgt_pathname,
+							target.filename = $tgt_filename
+					WITH actor, target
+					FOREACH(ignoreMe IN CASE WHEN target.created = true THEN [1] ELSE [] END|
+						SET target.created = false
+						MERGE (actor)-[r:EXEC]-(target)
+					)`
 
 			variableMap = map[string]interface{}{
 				"hostname":          hostname,
@@ -116,24 +116,24 @@ func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 		case uint32(es.ES_EVENT_TYPE_NOTIFY_FORK):
 			cypherQueryStr =
 				`MERGE (actor:Process {start_time:$actor_start_time, pid:$actor_pid})
-						ON CREATE
-							SET actor.ppid = $actor_ppid,
-								actor.parent_start_time = $parent_start_time,
-								actor.pathname = $actor_pathname,
-								actor.filename = $actor_filename
-						WITH actor
-						MERGE (target:Process:Forked {start_time:$child_start_time, pid:$tgt_pid})
-						ON CREATE
-							SET target.created = true,
-								target.parent_start_time = $actor_start_time,
-								target.ppid = $tgt_ppid,
-								target.pathname = $tgt_pathname,
-								target.filename = $tgt_filename
-						WITH actor, target
-						FOREACH(ignoreMe IN CASE WHEN target.created = true THEN [1] ELSE [] END|
-							SET target.created = false
-							MERGE (actor)-[r:FORK]-(target)
-						)`
+							ON CREATE
+								SET actor.ppid = $actor_ppid,
+									actor.parent_start_time = $parent_start_time,
+									actor.pathname = $actor_pathname,
+									actor.filename = $actor_filename
+							WITH actor
+							MERGE (target:Process:Forked {start_time:$child_start_time, pid:$tgt_pid})
+							ON CREATE
+								SET target.created = true,
+									target.parent_start_time = $actor_start_time,
+									target.ppid = $tgt_ppid,
+									target.pathname = $tgt_pathname,
+									target.filename = $tgt_filename
+							WITH actor, target
+							FOREACH(ignoreMe IN CASE WHEN target.created = true THEN [1] ELSE [] END|
+								SET target.created = false
+								MERGE (actor)-[r:FORK]-(target)
+							)`
 
 			variableMap = map[string]interface{}{
 				"hostname":          hostname,
@@ -149,13 +149,46 @@ func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 				"tgt_pathname":      s.GetStringValues()["tgt_executable_path"],
 				"tgt_filename":      s.GetStringValues()["tgt_executable_name"]}
 
+		case uint32(es.ES_EVENT_TYPE_NOTIFY_CLOSE):
+			cypherQueryStr =
+				`MERGE (actor:Process {start_time:$actor_start_time, pid:$actor_pid})
+							ON CREATE
+								SET actor.ppid = $actor_ppid,
+									actor.parent_start_time = $parent_start_time,
+									actor.pathname = $actor_pathname,
+									actor.filename = $actor_filename
+							WITH actor
+							MERGE (target:File:Closed {pathname:$tgt_pathname})
+							ON CREATE
+								SET target.created = true,
+									target.pathname = $tgt_pathname,
+									target.filename = $tgt_filename,
+									target.modified = $tgt_file_mod
+							WITH actor, target
+							FOREACH(ignoreMe IN CASE WHEN target.created = true THEN [1] ELSE [] END|
+								SET target.created = false
+								MERGE (actor)-[r:CLOSED]-(target)
+							)`
+
+			variableMap = map[string]interface{}{
+				"hostname":          hostname,
+				"actor_start_time":  s.GetUintValues()["actor_start_time"],
+				"actor_pid":         s.GetUintValues()["actor_pid"],
+				"parent_start_time": s.GetUintValues()["parent_start_time"],
+				"actor_ppid":        s.GetUintValues()["actor_ppid"],
+				"actor_pathname":    s.GetStringValues()["actor_executable_path"],
+				"actor_filename":    s.GetStringValues()["actor_executable_name"],
+
+				"tgt_pathname": s.GetStringValues()["tgt_path_name"],
+				"tgt_filename": s.GetStringValues()["tgt_file_name"],
+				"tgt_file_mod": s.GetBoolValues()["tgt_file_mod"]}
+
 		case uint32(es.ES_EVENT_TYPE_LAST + 1): //TODO define proper value type for discovered processes
 			if processItem.actor_pid == 1 {
 				cypherQueryStr =
 					`MERGE (h:Host {hostname:$hostname})
 							WITH h
 							MERGE (actor:Process:Discovered {start_time:$actor_start_time, pid:$actor_pid})
-							ON CREATE
 								SET
 									actor.pathname = $pathname,
 									actor.filename = $filename,
@@ -169,7 +202,6 @@ func (s *server) DoTransactionEvent(id uint64, msg *pb.Request) error {
 							WITH h
 							MERGE (parent:Process:Discovered {start_time:$parent_start_time, pid:$actor_ppid})
 							MERGE (actor:Process:Discovered {start_time:$actor_start_time, pid:$actor_pid})
-							ON CREATE
 								SET
 									actor.pathname = $pathname,
 									actor.filename = $filename,
