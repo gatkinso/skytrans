@@ -25,6 +25,9 @@ import "event.proto";
 
 service Transport {
     rpc Exchange(Request) returns (Response) {}
+    rpc ExchangeCS(stream Request) returns (Response) {}
+    rpc ExchangeSS(Request) returns (stream Response) {}
+    rpc ExchangeBS(stream Request) returns (stream Response) {}
 }
 
 message Metadata {
