@@ -25,6 +25,49 @@ message Hdr {
 
 }
 
+message es_process_tO {
+    uint64 global_sequence_num = 1;
+
+    uint32 pid = 2;
+    uint32 ppid = 3;
+    uint32 start_time = 4;
+    uint64 start_time_ms = 5;
+    string pathname = 6;
+    bool discovered = 7;
+    uint64 parent_start_time = 8;
+    uint64 parent_start_time_ms = 9;
+}
+
+message Script {
+    string path = 1;
+}
+
+message EsExec {
+    es_process_tO target = 1;
+    Script script = 2;
+}
+
+message EsFork {
+    es_process_tO child = 1;
+}
+
+message EsExit {
+    uint64 global_sequence_num = 1;
+    uint32 stat = 2;
+    uint64 exit_time_ms = 3;
+}
+
+message EsEvent {
+    uint64 global_sequence_num = 1;
+    uint32 event_type = 2;
+
+    es_process_tO process = 50;
+
+    EsExec exec = 100;
+    EsFork fork = 101;
+    EsExit exit = 102;
+}
 message Event {
     EsEvent esevent = 100;
+    //pb_es_message_t esmessage = 200;
 }

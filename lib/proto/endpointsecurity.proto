@@ -15,16 +15,17 @@
 
 syntax = "proto3";
 
-import "google/protobuf/timestamp.proto";
 package skyloupe.skytrans;
 option go_package = "transport/proto";
 
-message Fsid {
+import "google/protobuf/timestamp.proto";
+
+message pb_fsid {
     uint64 val1 = 1;
     uint64 val2 = 2;
 }
 
-message statfs {
+message pb_statfs {
     int32 f_otype = 1;                      // TEMPORARY SHADOW COPY OF f_type
     int32 f_oflags = 2;                     // TEMPORARY SHADOW COPY OF f_flags
     int64 f_bsize = 3;                      // Fundamental file system block size
@@ -34,7 +35,7 @@ message statfs {
     int64 f_bavail = 7;                     // Free blocks available to non-superuser
     int64 f_files = 8;                      // Total file nodes in file system
     int64 f_ffree = 9;                      // Free file nodes in file system
-    Fsid f_fsid = 10;                       // File system id
+    pb_fsid f_fsid = 10;                       // File system id
     uint32 f_owner = 11;                    // User that mounted the filesystem
     int32 f_reserved1 = 12;                 // Spare for later use
     int32 f_type = 13;                      // Type of filesystem
@@ -59,7 +60,7 @@ message Timespec {
     int64 tv_nsec = 2; // nanoseconds
 }
 
-message stat {
+message pb_stat {
     uint64 st_dev = 1;          // Device ID containing file
     uint64 st_ino = 2;          // File serial number
     uint32 st_mode = 3;         // Mode of file
@@ -84,27 +85,19 @@ message stat {
     repeated int64 st_qspare = 17; // RESERVED: DO NOT USE! (2 elements)
 }
 
-message audit_token_t {
+message pb_audit_token_t {
 	repeated uint32 val = 1;  // max 8
 }
 
-message es_string_token_t {
+message pb_es_string_token_t {
     string data = 1;
 }
 
-message es_cd_hash_t {
+message pb_es_cd_hash_t {
     bytes data = 1;
 }
 
-message cpu_type_t {
-    int32 value = 1;
-}
-
-message cpu_subtype_t {
-    int32 value = 1;
-}
-
-message attrlist {
+message pb_attrlist {
 	uint32 bitmapcount = 1;                    /* number of attr. bit sets in list (should be 5) */
 	uint32 reserved = 2;                     /* (to maintain 4-byte alignment) */
 	uint32 commonattr = 3;                 /* common attribute group */
@@ -114,137 +107,320 @@ message attrlist {
 	uint32 forkattr = 7;                   /* fork attribute group */
 };
 
-enum es_authorization_rule_class_t {
-	ES_AUTHORIZATION_RULE_CLASS_USER = 0;
+enum pb_es_authorization_rule_class_t {
+	PB_ES_AUTHORIZATION_RULE_CLASS_USER = 0;
 	/// Right is judged by a tree of sub-rules
-	ES_AUTHORIZATION_RULE_CLASS_RULE = 1;
+	PB_ES_AUTHORIZATION_RULE_CLASS_RULE = 1;
 	/// Right is judged by one or more plugins
-	ES_AUTHORIZATION_RULE_CLASS_MECHANISM = 2;
+	PB_ES_AUTHORIZATION_RULE_CLASS_MECHANISM = 2;
 	/// Right is always granted
-	ES_AUTHORIZATION_RULE_CLASS_ALLOW = 3;
+	PB_ES_AUTHORIZATION_RULE_CLASS_ALLOW = 3;
 	/// Right is always denied
-	ES_AUTHORIZATION_RULE_CLASS_DENY = 4;
+	PB_ES_AUTHORIZATION_RULE_CLASS_DENY = 4;
 	/// Right is unknown
-	ES_AUTHORIZATION_RULE_CLASS_UNKNOWN = 5;
+	PB_ES_AUTHORIZATION_RULE_CLASS_UNKNOWN = 5;
 	/// Right is invalid
-	ES_AUTHORIZATION_RULE_CLASS_INVALID = 6;
+	PB_ES_AUTHORIZATION_RULE_CLASS_INVALID = 6;
 }
 
-enum es_set_or_clear_t {
-	ES_SET = 0;
-	ES_CLEAR = 1;
+enum pb_es_result_type_t {
+	/// The result is an auth result
+	PB_ES_RESULT_TYPE_AUTH = 0;
+	/// The result is a flags result
+	PB_ES_RESULT_TYPE_FLAGS = 1;
 }
 
-enum es_sudo_plugin_type_t {
-	ES_SUDO_PLUGIN_TYPE_UNKNOWN = 0;
-	ES_SUDO_PLUGIN_TYPE_FRONT_END = 1;
-	ES_SUDO_PLUGIN_TYPE_POLICY = 2;
-	ES_SUDO_PLUGIN_TYPE_IO = 3;
-	ES_SUDO_PLUGIN_TYPE_AUDIT = 4;
-	ES_SUDO_PLUGIN_TYPE_APPROVAL = 5;
+// Define the enum in Protobuf
+enum pb_es_event_t {
+    // The following events are available beginning in macOS 10.15
+    PB_ES_EVENT_TYPE_AUTH_EXEC = 0;
+    PB_ES_EVENT_TYPE_AUTH_OPEN = 1;
+    PB_ES_EVENT_TYPE_AUTH_KEXTLOAD = 2;
+    PB_ES_EVENT_TYPE_AUTH_MMAP = 3;
+    PB_ES_EVENT_TYPE_AUTH_MPROTECT = 4;
+    PB_ES_EVENT_TYPE_AUTH_MOUNT = 5;
+    PB_ES_EVENT_TYPE_AUTH_RENAME = 6;
+    PB_ES_EVENT_TYPE_AUTH_SIGNAL = 7;
+    PB_ES_EVENT_TYPE_AUTH_UNLINK = 8;
+    PB_ES_EVENT_TYPE_NOTIFY_EXEC = 9;
+    PB_ES_EVENT_TYPE_NOTIFY_OPEN = 10;
+    PB_ES_EVENT_TYPE_NOTIFY_FORK = 11;
+    PB_ES_EVENT_TYPE_NOTIFY_CLOSE = 12;
+    PB_ES_EVENT_TYPE_NOTIFY_CREATE = 13;
+    PB_ES_EVENT_TYPE_NOTIFY_EXCHANGEDATA = 14;
+    PB_ES_EVENT_TYPE_NOTIFY_EXIT = 15;
+    PB_ES_EVENT_TYPE_NOTIFY_GET_TASK = 16;
+    PB_ES_EVENT_TYPE_NOTIFY_KEXTLOAD = 17;
+    PB_ES_EVENT_TYPE_NOTIFY_KEXTUNLOAD = 18;
+    PB_ES_EVENT_TYPE_NOTIFY_LINK = 19;
+    PB_ES_EVENT_TYPE_NOTIFY_MMAP = 20;
+    PB_ES_EVENT_TYPE_NOTIFY_MPROTECT = 21;
+    PB_ES_EVENT_TYPE_NOTIFY_MOUNT = 22;
+    PB_ES_EVENT_TYPE_NOTIFY_UNMOUNT = 23;
+    PB_ES_EVENT_TYPE_NOTIFY_IOKIT_OPEN = 24;
+    PB_ES_EVENT_TYPE_NOTIFY_RENAME = 25;
+    PB_ES_EVENT_TYPE_NOTIFY_SETATTRLIST = 26;
+    PB_ES_EVENT_TYPE_NOTIFY_SETEXTATTR = 27;
+    PB_ES_EVENT_TYPE_NOTIFY_SETFLAGS = 28;
+    PB_ES_EVENT_TYPE_NOTIFY_SETMODE = 29;
+    PB_ES_EVENT_TYPE_NOTIFY_SETOWNER = 30;
+    PB_ES_EVENT_TYPE_NOTIFY_SIGNAL = 31;
+    PB_ES_EVENT_TYPE_NOTIFY_UNLINK = 32;
+    PB_ES_EVENT_TYPE_NOTIFY_WRITE = 33;
+    PB_ES_EVENT_TYPE_AUTH_FILE_PROVIDER_MATERIALIZE = 34;
+    PB_ES_EVENT_TYPE_NOTIFY_FILE_PROVIDER_MATERIALIZE = 35;
+    PB_ES_EVENT_TYPE_AUTH_FILE_PROVIDER_UPDATE = 36;
+    PB_ES_EVENT_TYPE_NOTIFY_FILE_PROVIDER_UPDATE = 37;
+    PB_ES_EVENT_TYPE_AUTH_READLINK = 38;
+    PB_ES_EVENT_TYPE_NOTIFY_READLINK = 39;
+    PB_ES_EVENT_TYPE_AUTH_TRUNCATE = 40;
+    PB_ES_EVENT_TYPE_NOTIFY_TRUNCATE = 41;
+    PB_ES_EVENT_TYPE_AUTH_LINK = 42;
+    PB_ES_EVENT_TYPE_NOTIFY_LOOKUP = 43;
+    PB_ES_EVENT_TYPE_AUTH_CREATE = 44;
+    PB_ES_EVENT_TYPE_AUTH_SETATTRLIST = 45;
+    PB_ES_EVENT_TYPE_AUTH_SETEXTATTR = 46;
+    PB_ES_EVENT_TYPE_AUTH_SETFLAGS = 47;
+    PB_ES_EVENT_TYPE_AUTH_SETMODE = 48;
+    PB_ES_EVENT_TYPE_AUTH_SETOWNER = 49;
+
+    // The following events are available beginning in macOS 10.15.1
+    PB_ES_EVENT_TYPE_AUTH_CHDIR = 50;
+    PB_ES_EVENT_TYPE_NOTIFY_CHDIR = 51;
+    PB_ES_EVENT_TYPE_AUTH_GETATTRLIST = 52;
+    PB_ES_EVENT_TYPE_NOTIFY_GETATTRLIST = 53;
+    PB_ES_EVENT_TYPE_NOTIFY_STAT = 54;
+    PB_ES_EVENT_TYPE_NOTIFY_ACCESS = 55;
+    PB_ES_EVENT_TYPE_AUTH_CHROOT = 56;
+    PB_ES_EVENT_TYPE_NOTIFY_CHROOT = 57;
+    PB_ES_EVENT_TYPE_AUTH_UTIMES = 58;
+    PB_ES_EVENT_TYPE_NOTIFY_UTIMES = 59;
+    PB_ES_EVENT_TYPE_AUTH_CLONE = 60;
+    PB_ES_EVENT_TYPE_NOTIFY_CLONE = 61;
+    PB_ES_EVENT_TYPE_NOTIFY_FCNTL = 62;
+    PB_ES_EVENT_TYPE_AUTH_GETEXTATTR = 63;
+    PB_ES_EVENT_TYPE_NOTIFY_GETEXTATTR = 64;
+    PB_ES_EVENT_TYPE_AUTH_LISTEXTATTR = 65;
+    PB_ES_EVENT_TYPE_NOTIFY_LISTEXTATTR = 66;
+    PB_ES_EVENT_TYPE_AUTH_READDIR = 67;
+    PB_ES_EVENT_TYPE_NOTIFY_READDIR = 68;
+    PB_ES_EVENT_TYPE_AUTH_DELETEEXTATTR = 69;
+    PB_ES_EVENT_TYPE_NOTIFY_DELETEEXTATTR = 70;
+    PB_ES_EVENT_TYPE_AUTH_FSGETPATH = 71;
+    PB_ES_EVENT_TYPE_NOTIFY_FSGETPATH = 72;
+    PB_ES_EVENT_TYPE_NOTIFY_DUP = 73;
+    PB_ES_EVENT_TYPE_AUTH_SETTIME = 74;
+    PB_ES_EVENT_TYPE_NOTIFY_SETTIME = 75;
+    PB_ES_EVENT_TYPE_NOTIFY_UIPC_BIND = 76;
+    PB_ES_EVENT_TYPE_AUTH_UIPC_BIND = 77;
+    PB_ES_EVENT_TYPE_NOTIFY_UIPC_CONNECT = 78;
+    PB_ES_EVENT_TYPE_AUTH_UIPC_CONNECT = 79;
+    PB_ES_EVENT_TYPE_AUTH_EXCHANGEDATA = 80;
+    PB_ES_EVENT_TYPE_AUTH_SETACL = 81;
+    PB_ES_EVENT_TYPE_NOTIFY_SETACL = 82;
+
+    // The following events are available beginning in macOS 10.15.4
+    PB_ES_EVENT_TYPE_NOTIFY_PTY_GRANT = 83;
+    PB_ES_EVENT_TYPE_NOTIFY_PTY_CLOSE = 84;
+    PB_ES_EVENT_TYPE_AUTH_PROC_CHECK = 85;
+    PB_ES_EVENT_TYPE_NOTIFY_PROC_CHECK = 86;
+    PB_ES_EVENT_TYPE_AUTH_GET_TASK = 87;
+
+    // The following events are available beginning in macOS 11.0
+    PB_ES_EVENT_TYPE_AUTH_SEARCHFS = 88;
+    PB_ES_EVENT_TYPE_NOTIFY_SEARCHFS = 89;
+    PB_ES_EVENT_TYPE_AUTH_FCNTL = 90;
+    PB_ES_EVENT_TYPE_AUTH_IOKIT_OPEN = 91;
+    PB_ES_EVENT_TYPE_AUTH_PROC_SUSPEND_RESUME = 92;
+    PB_ES_EVENT_TYPE_NOTIFY_PROC_SUSPEND_RESUME = 93;
+    PB_ES_EVENT_TYPE_NOTIFY_CS_INVALIDATED = 94;
+    PB_ES_EVENT_TYPE_NOTIFY_GET_TASK_NAME = 95;
+    PB_ES_EVENT_TYPE_NOTIFY_TRACE = 96;
+    PB_ES_EVENT_TYPE_NOTIFY_REMOTE_THREAD_CREATE = 97;
+    PB_ES_EVENT_TYPE_AUTH_REMOUNT = 98;
+    PB_ES_EVENT_TYPE_NOTIFY_REMOUNT = 99;
+
+    // The following events are available beginning in macOS 11.3
+    PB_ES_EVENT_TYPE_AUTH_GET_TASK_READ = 100;
+    PB_ES_EVENT_TYPE_NOTIFY_GET_TASK_READ = 101;
+    PB_ES_EVENT_TYPE_NOTIFY_GET_TASK_INSPECT = 102;
+
+    // The following events are available beginning in macOS 12.0
+    PB_ES_EVENT_TYPE_NOTIFY_SETUID = 103;
+    PB_ES_EVENT_TYPE_NOTIFY_SETGID = 104;
+    PB_ES_EVENT_TYPE_NOTIFY_SETEUID = 105;
+    PB_ES_EVENT_TYPE_NOTIFY_SETEGID = 106;
+    PB_ES_EVENT_TYPE_NOTIFY_SETREUID = 107;
+    PB_ES_EVENT_TYPE_NOTIFY_SETREGID = 108;
+    PB_ES_EVENT_TYPE_AUTH_COPYFILE = 109;
+    PB_ES_EVENT_TYPE_NOTIFY_COPYFILE = 110;
+
+    // The following events are available beginning in macOS 13.0
+    PB_ES_EVENT_TYPE_NOTIFY_AUTHENTICATION = 111;
+    PB_ES_EVENT_TYPE_NOTIFY_XP_MALWARE_DETECTED = 112;
+    PB_ES_EVENT_TYPE_NOTIFY_XP_MALWARE_REMEDIATED = 113;
+    PB_ES_EVENT_TYPE_NOTIFY_LW_SESSION_LOGIN = 114;
+    PB_ES_EVENT_TYPE_NOTIFY_LW_SESSION_LOGOUT = 115;
+    PB_ES_EVENT_TYPE_NOTIFY_LW_SESSION_LOCK = 116;
+    PB_ES_EVENT_TYPE_NOTIFY_LW_SESSION_UNLOCK = 117;
+    PB_ES_EVENT_TYPE_NOTIFY_SCREENSHARING_ATTACH = 118;
+    PB_ES_EVENT_TYPE_NOTIFY_SCREENSHARING_DETACH = 119;
+    PB_ES_EVENT_TYPE_NOTIFY_OPENSSH_LOGIN = 120;
+    PB_ES_EVENT_TYPE_NOTIFY_OPENSSH_LOGOUT = 121;
+    PB_ES_EVENT_TYPE_NOTIFY_LOGIN_LOGIN = 122;
+    PB_ES_EVENT_TYPE_NOTIFY_LOGIN_LOGOUT = 123;
+    PB_ES_EVENT_TYPE_NOTIFY_BTM_LAUNCH_ITEM_ADD = 124;
+    PB_ES_EVENT_TYPE_NOTIFY_BTM_LAUNCH_ITEM_REMOVE = 125;
+
+    // The following events are available beginning in macOS 14.0
+    PB_ES_EVENT_TYPE_NOTIFY_PROFILE_ADD = 126;
+    PB_ES_EVENT_TYPE_NOTIFY_PROFILE_REMOVE = 127;
+    PB_ES_EVENT_TYPE_NOTIFY_SU = 128;
+    PB_ES_EVENT_TYPE_NOTIFY_AUTHORIZATION_PETITION = 129;
+    PB_ES_EVENT_TYPE_NOTIFY_AUTHORIZATION_JUDGEMENT = 130;
+    PB_ES_EVENT_TYPE_NOTIFY_SUDO = 131;
+    PB_ES_EVENT_TYPE_NOTIFY_OD_GROUP_ADD = 132;
+    PB_ES_EVENT_TYPE_NOTIFY_OD_GROUP_REMOVE = 133;
+    PB_ES_EVENT_TYPE_NOTIFY_OD_GROUP_SET = 134;
+    PB_ES_EVENT_TYPE_NOTIFY_OD_MODIFY_PASSWORD = 135;
+    PB_ES_EVENT_TYPE_NOTIFY_OD_DISABLE_USER = 136;
+    PB_ES_EVENT_TYPE_NOTIFY_OD_ENABLE_USER = 137;
+    PB_ES_EVENT_TYPE_NOTIFY_OD_ATTRIBUTE_VALUE_ADD = 138;
+    PB_ES_EVENT_TYPE_NOTIFY_OD_ATTRIBUTE_VALUE_REMOVE = 139;
+    PB_ES_EVENT_TYPE_NOTIFY_OD_ATTRIBUTE_SET = 140;
+    PB_ES_EVENT_TYPE_NOTIFY_OD_CREATE_USER = 141;
+    PB_ES_EVENT_TYPE_NOTIFY_OD_CREATE_GROUP = 142;
+    PB_ES_EVENT_TYPE_NOTIFY_OD_DELETE_USER = 143;
+    PB_ES_EVENT_TYPE_NOTIFY_OD_DELETE_GROUP = 144;
+    PB_ES_EVENT_TYPE_NOTIFY_XPC_CONNECT = 145;
+
+    // The following events are available beginning in macOS 15.0
+    PB_ES_EVENT_TYPE_NOTIFY_GATEKEEPER_USER_OVERRIDE = 146;
+
+    // PB_ES_EVENT_TYPE_LAST is not a valid event type but a convenience value
+    PB_ES_EVENT_TYPE_LAST = 147;
 }
 
-enum es_proc_check_type_t {
-    ES_PROC_CHECK_TYPE_ZERO_UNUSED = 0;
-	ES_PROC_CHECK_TYPE_LISTPIDS = 0x1;
-	ES_PROC_CHECK_TYPE_PIDINFO = 0x2;
-	ES_PROC_CHECK_TYPE_PIDFDINFO = 0x3;
-	ES_PROC_CHECK_TYPE_KERNMSGBUF = 0x4; // deprecated, not generated
-	ES_PROC_CHECK_TYPE_SETCONTROL = 0x5;
-	ES_PROC_CHECK_TYPE_PIDFILEPORTINFO = 0x6;
-	ES_PROC_CHECK_TYPE_TERMINATE = 0x7; // deprecated, not generated
-	ES_PROC_CHECK_TYPE_DIRTYCONTROL = 0x8;
-	ES_PROC_CHECK_TYPE_PIDRUSAGE = 0x9;
-	ES_PROC_CHECK_TYPE_UDATA_INFO = 0xe; // deprecated, not generated
+enum pb_es_set_or_clear_t {
+	PB_ES_SET = 0;
+	PB_ES_CLEAR = 1;
 }
 
-enum es_authentication_type_t {
-	ES_AUTHENTICATION_TYPE_OD = 0;
-	ES_AUTHENTICATION_TYPE_TOUCHID = 1;
-	ES_AUTHENTICATION_TYPE_TOKEN = 2;
-	ES_AUTHENTICATION_TYPE_AUTO_UNLOCK = 3;
-	// ES_AUTHENTICATION_TYPE_LAST is not a valid type of authentication
+enum pb_es_sudo_plugin_type_t {
+	PB_ES_SUDO_PLUGIN_TYPE_UNKNOWN = 0;
+	PB_ES_SUDO_PLUGIN_TYPE_FRONT_END = 1;
+	PB_ES_SUDO_PLUGIN_TYPE_POLICY = 2;
+	PB_ES_SUDO_PLUGIN_TYPE_IO = 3;
+	PB_ES_SUDO_PLUGIN_TYPE_AUDIT = 4;
+	PB_ES_SUDO_PLUGIN_TYPE_APPROVAL = 5;
+}
+
+enum pb_es_proc_check_type_t {
+    PB_ES_PROC_CHECK_TYPE_ZERO_UNUSED = 0;
+	PB_ES_PROC_CHECK_TYPE_LISTPIDS = 0x1;
+	PB_ES_PROC_CHECK_TYPE_PIDINFO = 0x2;
+	PB_ES_PROC_CHECK_TYPE_PIDFDINFO = 0x3;
+	PB_ES_PROC_CHECK_TYPE_KERNMSGBUF = 0x4; // deprecated, not generated
+	PB_ES_PROC_CHECK_TYPE_SETCONTROL = 0x5;
+	PB_ES_PROC_CHECK_TYPE_PIDFILEPORTINFO = 0x6;
+	PB_ES_PROC_CHECK_TYPE_TERMINATE = 0x7; // deprecated, not generated
+	PB_ES_PROC_CHECK_TYPE_DIRTYCONTROL = 0x8;
+	PB_ES_PROC_CHECK_TYPE_PIDRUSAGE = 0x9;
+	PB_ES_PROC_CHECK_TYPE_UDATA_INFO = 0xe; // deprecated, not generated
+}
+
+enum pb_es_authentication_type_t {
+	PB_ES_AUTHENTICATION_TYPE_OD = 0;
+	PB_ES_AUTHENTICATION_TYPE_TOUCHID = 1;
+	PB_ES_AUTHENTICATION_TYPE_TOKEN = 2;
+	PB_ES_AUTHENTICATION_TYPE_AUTO_UNLOCK = 3;
+	// PB_ES_AUTHENTICATION_TYPE_LAST is not a valid type of authentication
 	// but is a convenience value to operate on the range of defined
 	// authentication types.
-	ES_AUTHENTICATION_TYPE_LAST = 4;
+	PB_ES_AUTHENTICATION_TYPE_LAST = 4;
 }
 
-enum es_address_type_t {
+enum pb_es_address_type_t {
 	/// No source address available.
-	ES_ADDRESS_TYPE_NONE = 0;
+	PB_ES_ADDRESS_TYPE_NONE = 0;
 	/// Source address is IPv4.
-	ES_ADDRESS_TYPE_IPV4 = 1;
+	PB_ES_ADDRESS_TYPE_IPV4 = 1;
 	/// Source address is IPv6.
-	ES_ADDRESS_TYPE_IPV6 = 2;
+	PB_ES_ADDRESS_TYPE_IPV6 = 2;
 	/// Source address is named UNIX socket.
-	ES_ADDRESS_TYPE_NAMED_SOCKET = 3;
+	PB_ES_ADDRESS_TYPE_NAMED_SOCKET = 3;
 }
 
-message es_file_t {
-    es_string_token_t path = 1;
+message pb_es_file_t {
+    pb_es_string_token_t path = 1;
     bool path_truncated = 2;
-    stat stat = 3;
+    pb_stat pb_stat = 3;
 }
 
-enum es_destination_type_t {
-	ES_DESTINATION_TYPE_EXISTING_FILE = 0;
-	ES_DESTINATION_TYPE_NEW_PATH = 1;
+enum pb_es_destination_type_t {
+	PB_ES_DESTINATION_TYPE_EXISTING_FILE = 0;
+	PB_ES_DESTINATION_TYPE_NEW_PATH = 1;
 }
 
-message es_acl_t {
+message pb_es_acl_t {
 
 }
 
-message es_thread_t {
+message pb_es_thread_t {
     uint64 thread_id = 1;
 }
 
-message es_event_access_t {
+message pb_es_event_access_t {
     int32 mode = 1;
-    es_file_t target = 2;
+    pb_es_file_t target = 2;
     bytes reserved = 3;
 }
 
-message es_event_id_t {
+message pb_es_event_id_t {
     bytes reserved = 1;
 }
 
-enum es_auth_result_t {
-    ES_AUTH_RESULT_ALLOW = 0;
-    ES_AUTH_RESULT_DENY = 1;
+enum pb_es_action_type_t {
+	PB_ES_ACTION_TYPE_AUTH = 0;
+	PB_ES_ACTION_TYPE_NOTIFY = 1;
 }
 
-message es_signed_file_info_t {
-    es_cd_hash_t cdhash = 1;
+enum pb_es_auth_result_t {
+    PB_ES_AUTH_RESULT_ALLOW = 0;
+    PB_ES_AUTH_RESULT_DENY = 1;
+}
+
+message pb_es_signed_file_info_t {
+    pb_es_cd_hash_t cdhash = 1;
     string signing_id = 2;
     string team_id = 3;
 }
 
-message es_process_t {
-    audit_token_t audit_token = 1;
+message pb_es_process_t {
+    pb_audit_token_t audit_token = 1;
     int32 ppid = 2;
     int32 original_ppid = 3;
     int32 group_id = 4;
     int32 session_id = 5;
     uint32 codesigning_flags = 6;
     bool is_platform_binary = 7;
-    bool is_es_client = 8;
-    es_cd_hash_t cdhash = 9;
-    es_string_token_t signing_id = 10;
-    es_string_token_t team_id = 11;
-    es_file_t executable = 12;
-    es_file_t tty = 13;
+    bool is_pb_es_client = 8;
+    pb_es_cd_hash_t cdhash = 9;
+    pb_es_string_token_t signing_id = 10;
+    pb_es_string_token_t team_id = 11;
+    pb_es_file_t executable = 12;
+    pb_es_file_t tty = 13;
     Timeval start_time = 14;
-    audit_token_t responsible_audit_token = 15;
-    audit_token_t parent_audit_token = 16;
+    pb_audit_token_t responsible_audit_token = 15;
+    pb_audit_token_t parent_audit_token = 16;
 }
 
-message es_thread_state_t {
+message pb_es_thread_state_t {
     int32 flavor = 1;
-    es_string_token_t state = 2;
+    pb_es_string_token_t state = 2;
 }
 
-message es_fd_t {
+message pb_es_fd_t {
     int32 fd = 1;
     uint32 fdtype = 2;
     oneof fd_union {
@@ -252,671 +428,671 @@ message es_fd_t {
     }
 }
 
-enum es_btm_item_type {
-    ES_BTM_ITEM_TYPE_USER_ITEM = 0;
-    ES_BTM_ITEM_TYPE_APP = 1;
-    ES_BTM_ITEM_TYPE_LOGIN_ITEM = 2;
-    ES_BTM_ITEM_TYPE_AGENT = 3;
-    ES_BTM_ITEM_TYPE_DAEMON = 4;
+enum pb_es_btm_item_type {
+    PB_ES_BTM_ITEM_TYPE_USER_ITEM = 0;
+    PB_ES_BTM_ITEM_TYPE_APP = 1;
+    PB_ES_BTM_ITEM_TYPE_LOGIN_ITEM = 2;
+    PB_ES_BTM_ITEM_TYPE_AGENT = 3;
+    PB_ES_BTM_ITEM_TYPE_DAEMON = 4;
 }
 
-message es_btm_launch_item_t {
-    es_btm_item_type item_type = 1;
+message pb_es_btm_launch_item_t {
+    pb_es_btm_item_type item_type = 1;
     bool legacy = 2;
     bool managed = 3;
     uint32 uid = 4;
-    es_string_token_t item_url = 5;
-    es_string_token_t app_url = 6;
+    pb_es_string_token_t item_url = 5;
+    pb_es_string_token_t app_url = 6;
 }
 
-enum es_profile_source {
-    ES_PROFILE_SOURCE_MANAGED = 0;
-    ES_PROFILE_SOURCE_INSTALL = 1;
+enum pb_es_profile_source {
+    PB_ES_PROFILE_SOURCE_MANAGED = 0;
+    PB_ES_PROFILE_SOURCE_INSTALL = 1;
 }
 
-message es_profile_t {
-    es_string_token_t identifier = 1;
-    es_string_token_t uuid = 2;
-    es_profile_source install_source = 3;
-    es_string_token_t organization = 4;
-    es_string_token_t display_name = 5;
-    es_string_token_t scope = 6;
+message pb_es_profile_t {
+    pb_es_string_token_t identifier = 1;
+    pb_es_string_token_t uuid = 2;
+    pb_es_profile_source install_source = 3;
+    pb_es_string_token_t organization = 4;
+    pb_es_string_token_t display_name = 5;
+    pb_es_string_token_t scope = 6;
 }
 
-message es_event_exec_t {
-    es_process_t target = 1;
-    es_string_token_t dyld_exec_path = 2;
+message pb_es_event_exec_t {
+    pb_es_process_t target = 1;
+    pb_es_string_token_t dyld_exec_path = 2;
     oneof exec_union {
-        es_file_t script = 3;
-        es_file_t cwd = 4;
+        pb_es_file_t script = 3;
+        pb_es_file_t cwd = 4;
         int32 last_fd = 5;
-        cpu_type_t image_cpu_type_t = 6;
-        cpu_subtype_t image_cpu_subtype_t = 7;
+        int32 image_cpu_type_t = 6;
+        int32 image_cpu_subtype_t = 7;
     }
 }
 
-message es_event_open_t {
+message pb_es_event_open_t {
     int32 fflag = 1;
-    es_file_t file = 2;
+    pb_es_file_t file = 2;
 }
 
-message es_event_kextload_t {
-    es_string_token_t identifier = 1;
+message pb_es_event_kextload_t {
+    pb_es_string_token_t identifier = 1;
 }
 
-message es_event_kextunload_t {
-    es_string_token_t identifier = 1;
+message pb_es_event_kextunload_t {
+    pb_es_string_token_t identifier = 1;
 }
 
-message es_event_unlink_t {
-    es_file_t target = 1;
-    es_file_t parent_dir = 2;
+message pb_es_event_unlink_t {
+    pb_es_file_t target = 1;
+    pb_es_file_t parent_dir = 2;
 }
 
-message es_event_mmap_t {
+message pb_es_event_mmap_t {
     int32 protection = 1;
     int32 max_protection = 2;
     int32 flags = 3;
     uint64 file_pos = 4;
-    es_file_t source = 5;
+    pb_es_file_t source = 5;
 }
 
-message es_event_link_t {
-    es_file_t source = 1;
-    es_file_t target_dir = 2;
-    es_string_token_t target_filename = 3;
+message pb_es_event_link_t {
+    pb_es_file_t source = 1;
+    pb_es_file_t target_dir = 2;
+    pb_es_string_token_t target_filename = 3;
 }
 
-enum es_mount_disposition_t {
-    ES_MOUNT_DISPOSITION_EXTERNAL = 0;
-    ES_MOUNT_DISPOSITION_INTERNAL = 1;
-    ES_MOUNT_DISPOSITION_NETWORK = 2;
-    ES_MOUNT_DISPOSITION_VIRTUAL = 3;
-    ES_MOUNT_DISPOSITION_NULLFS = 4;
-    ES_MOUNT_DISPOSITION_UNKNOWN = 5;
+enum pb_es_mount_disposition_t {
+    PB_ES_MOUNT_DISPOSITION_EXTERNAL = 0;
+    PB_ES_MOUNT_DISPOSITION_INTERNAL = 1;
+    PB_ES_MOUNT_DISPOSITION_NETWORK = 2;
+    PB_ES_MOUNT_DISPOSITION_VIRTUAL = 3;
+    PB_ES_MOUNT_DISPOSITION_NULLFS = 4;
+    PB_ES_MOUNT_DISPOSITION_UNKNOWN = 5;
 }
 
-message es_event_mount_t {
-    statfs statfs = 1;
-    es_mount_disposition_t disposition = 2;
+message pb_es_event_mount_t {
+    pb_statfs pb_statfs = 1;
+    pb_es_mount_disposition_t disposition = 2;
 }
 
-message es_event_unmount_t {
-    statfs statfs = 1;
+message pb_es_event_unmount_t {
+    pb_statfs pb_statfs = 1;
 }
 
-message es_event_remount_t {
-    statfs statfs = 1;
+message pb_es_event_remount_t {
+    pb_statfs pb_statfs = 1;
     uint64 remount_flags = 2;
-    es_mount_disposition_t disposition = 3;
+    pb_es_mount_disposition_t disposition = 3;
 }
 
-message es_event_fork_t {
-    es_process_t child = 1;
+message pb_es_event_fork_t {
+    pb_es_process_t child = 1;
 }
 
-message es_event_mprotect_t {
+message pb_es_event_mprotect_t {
     int32 protection = 1;
     uint64 address = 2;
     uint64 size = 3;
 }
 
-message es_event_signal_t {
+message pb_es_event_signal_t {
     int32 sig = 1;
-    es_process_t target = 2;
+    pb_es_process_t target = 2;
 }
 
-message es_event_rename_t {
-    es_file_t source = 1;
-    es_destination_type_t destination_type = 2;
+message pb_es_event_rename_t {
+    pb_es_file_t source = 1;
+    pb_es_destination_type_t destination_type = 2;
     oneof destination {
-        es_file_t existing_file = 3;
-        es_new_path_t new_path = 4;
+        pb_es_file_t existing_file = 3;
+        pb_es_new_path_t new_path = 4;
     }
 }
 
-message es_new_path_t {
-    es_file_t dir = 1;
-    es_string_token_t filename = 2;
+message pb_es_new_path_t {
+    pb_es_file_t dir = 1;
+    pb_es_string_token_t filename = 2;
 }
 
-message es_event_setextattr_t {
-    es_file_t target = 1;
-    es_string_token_t extattr = 2;
+message pb_es_event_setextattr_t {
+    pb_es_file_t target = 1;
+    pb_es_string_token_t extattr = 2;
 }
 
-message es_event_getextattr_t {
-    es_file_t target = 1;
-    es_string_token_t extattr = 2;
+message pb_es_event_getextattr_t {
+    pb_es_file_t target = 1;
+    pb_es_string_token_t extattr = 2;
 }
 
-message es_event_deleteextattr_t {
-    es_file_t target = 1;
-    es_string_token_t extattr = 2;
+message pb_es_event_deleteextattr_t {
+    pb_es_file_t target = 1;
+    pb_es_string_token_t extattr = 2;
 }
 
-message es_event_setmode_t {
+message pb_es_event_setmode_t {
     int32 mode = 1;
-    es_file_t target = 2;
+    pb_es_file_t target = 2;
 }
 
-message es_event_setflags_t {
+message pb_es_event_setflags_t {
     uint32 flags = 1;
-    es_file_t target = 2;
+    pb_es_file_t target = 2;
 }
 
-message es_event_setowner_t {
+message pb_es_event_setowner_t {
     uint32 uid = 1;
     uint32 gid = 2;
-    es_file_t target = 3;
+    pb_es_file_t target = 3;
 }
 
-message es_event_close_t {
+message pb_es_event_close_t {
     bool modified = 1;
-    es_file_t target = 2;
+    pb_es_file_t target = 2;
     bool was_mapped_writable = 3; // Field available if message version >= 6
 }
 
-message es_event_create_t {
-    es_destination_type_t destination_type = 1;
+message pb_es_event_create_t {
+    pb_es_destination_type_t destination_type = 1;
     oneof destination {
-        es_file_t existing_file = 2;
-        es_new_path_t new_path = 3;
+        pb_es_file_t existing_file = 2;
+        pb_es_new_path_t new_path = 3;
     }
-    es_acl_t acl = 4; // Field available if message version >= 2
+    pb_es_acl_t acl = 4; // Field available if message version >= 2
 }
 
-message es_event_exit_t {
-    int32 stat = 1;
+message pb_es_event_exit_t {
+    int32 pb_stat = 1;
 }
 
-message es_event_write_t {
-    es_file_t target = 1;
+message pb_es_event_write_t {
+    pb_es_file_t target = 1;
 }
 
-message es_event_truncate_t {
-    es_file_t target = 1;
+message pb_es_event_truncate_t {
+    pb_es_file_t target = 1;
 }
 
-message es_event_chdir_t {
-    es_file_t target = 1;
+message pb_es_event_chdir_t {
+    pb_es_file_t target = 1;
 }
 
-message es_event_stat_t {
-    es_file_t target = 1;
+message pb_es_event_stat_t {
+    pb_es_file_t target = 1;
 }
 
-message es_event_chroot_t {
-    es_file_t target = 1;
+message pb_es_event_chroot_t {
+    pb_es_file_t target = 1;
 }
 
-message es_event_listextattr_t {
-    es_file_t target = 1;
+message pb_es_event_listextattr_t {
+    pb_es_file_t target = 1;
 }
 
-message es_event_iokit_open_t {
+message pb_es_event_iokit_open_t {
     uint32 user_client_type = 1;
-    es_string_token_t user_client_class = 2;
+    pb_es_string_token_t user_client_class = 2;
 }
 
-enum es_get_task_type_t {
-    ES_GET_TASK_TYPE_TASK_FOR_PID = 0;
-    ES_GET_TASK_TYPE_EXPOSE_TASK = 1;
-    ES_GET_TASK_TYPE_IDENTITY_TOKEN = 2;
+enum pb_es_get_task_type_t {
+    PB_ES_GET_TASK_TYPE_TASK_FOR_PID = 0;
+    PB_ES_GET_TASK_TYPE_EXPOSE_TASK = 1;
+    PB_ES_GET_TASK_TYPE_IDENTITY_TOKEN = 2;
 }
 
-message es_event_get_task_t {
-    es_process_t target = 1;
-    es_get_task_type_t type = 2; // Field available if message version >= 5
+message pb_es_event_get_task_t {
+    pb_es_process_t target = 1;
+    pb_es_get_task_type_t type = 2; // Field available if message version >= 5
 }
 
-message es_event_get_task_read_t {
-    es_process_t target = 1;               // The process associated with the event
-    es_event_get_task_t type = 2;             // Type indicating how the task port is obtained (available if message version >= 5)
+message pb_es_event_get_task_read_t {
+    pb_es_process_t target = 1;               // The process associated with the event
+    pb_es_event_get_task_t type = 2;             // Type indicating how the task port is obtained (available if message version >= 5)
 }
 
-message es_event_get_task_inspect_t {
-    es_process_t target = 1;               // The process for which the task inspect port will be retrieved
-    es_event_get_task_t type = 2;             // Type indicating how the task port is obtained (available if message version >= 5)
+message pb_es_event_get_task_inspect_t {
+    pb_es_process_t target = 1;               // The process for which the task inspect port will be retrieved
+    pb_es_event_get_task_t type = 2;             // Type indicating how the task port is obtained (available if message version >= 5)
 }
 
-message es_event_get_task_name_t {
-    es_process_t target = 1;               // The process for which the task name port will be retrieved
-    es_event_get_task_t type = 2;             // Type indicating how the task port is obtained (available if message version >= 5)
+message pb_es_event_get_task_name_t {
+    pb_es_process_t target = 1;               // The process for which the task name port will be retrieved
+    pb_es_event_get_task_t type = 2;             // Type indicating how the task port is obtained (available if message version >= 5)
 }
 
-message es_event_getattrlist_t {
-    attrlist attrlist = 1; // Define attrlist structure as needed
-    es_file_t target = 2;
+message pb_es_event_getattrlist_t {
+    pb_attrlist pb_attrlist = 1; // Define pb_attrlist structure as needed
+    pb_es_file_t target = 2;
 }
 
-message es_event_setattrlist_t {
-    attrlist attrlist = 1;
-    es_file_t target = 2;
+message pb_es_event_setattrlist_t {
+    pb_attrlist pb_attrlist = 1;
+    pb_es_file_t target = 2;
 }
 
-message es_event_file_provider_update_t {
-    es_file_t source = 1;
-    es_string_token_t target_path = 2;
+message pb_es_event_file_provider_update_t {
+    pb_es_file_t source = 1;
+    pb_es_string_token_t target_path = 2;
 }
 
-message es_event_file_provider_materialize_t {
-    es_process_t instigator = 1;
-    es_file_t source = 2;
-    es_file_t target = 3;
-    audit_token_t instigator_token = 4; // Available in message version >= 8
+message pb_es_event_file_provider_materialize_t {
+    pb_es_process_t instigator = 1;
+    pb_es_file_t source = 2;
+    pb_es_file_t target = 3;
+    pb_audit_token_t instigator_token = 4; // Available in message version >= 8
 }
 
-message es_event_readlink_t {
-    es_file_t source = 1;
+message pb_es_event_readlink_t {
+    pb_es_file_t source = 1;
 }
 
-message es_event_lookup_t {
-    es_file_t source_dir = 1;
-    es_string_token_t relative_target = 2;
+message pb_es_event_lookup_t {
+    pb_es_file_t source_dir = 1;
+    pb_es_string_token_t relative_target = 2;
 }
 
-message es_event_utimes_t {
-    es_file_t target = 1;
+message pb_es_event_utimpb_es_t {
+    pb_es_file_t target = 1;
     Timespec atime = 2;
     Timespec mtime = 3;
 }
 
-message es_event_clone_t {
-    es_file_t source = 1;
-    es_file_t target_dir = 2;
-    es_string_token_t target_name = 3;
+message pb_es_event_clone_t {
+    pb_es_file_t source = 1;
+    pb_es_file_t target_dir = 2;
+    pb_es_string_token_t target_name = 3;
 }
 
-message es_event_copyfile_t {
-    es_file_t source = 1;
-    es_file_t target_file = 2;
-    es_file_t target_dir = 3;
-    es_string_token_t target_name = 4;
+message pb_es_event_copyfile_t {
+    pb_es_file_t source = 1;
+    pb_es_file_t target_file = 2;
+    pb_es_file_t target_dir = 3;
+    pb_es_string_token_t target_name = 4;
     int32 mode = 5;
     int32 flags = 6;
 }
 
-message es_event_fcntl_t {
-    es_file_t target = 1;
+message pb_es_event_fcntl_t {
+    pb_es_file_t target = 1;
     int32 cmd = 2;
 }
 
-message es_event_readdir_t {
-    es_file_t target = 1;
+message pb_es_event_readdir_t {
+    pb_es_file_t target = 1;
 }
 
-message es_event_fsgetpath_t {
-    es_file_t target = 1;
+message pb_es_event_fsgetpath_t {
+    pb_es_file_t target = 1;
 }
 
-message es_event_settime_t {
+message pb_es_event_settime_t {
     // Placeholder for event fields if needed
 }
 
-message es_event_dup_t {
-    es_file_t target = 1;
+message pb_es_event_dup_t {
+    pb_es_file_t target = 1;
 }
 
-message es_event_uipc_bind_t {
-    es_file_t dir = 1;
-    es_string_token_t filename = 2;
+message pb_es_event_uipc_bind_t {
+    pb_es_file_t dir = 1;
+    pb_es_string_token_t filename = 2;
     int32 mode = 3;
 }
 
-message es_event_uipc_connect_t {
-    es_file_t file = 1;
+message pb_es_event_uipc_connect_t {
+    pb_es_file_t file = 1;
     int32 domain = 2;
     int32 type = 3;
     int32 protocol = 4;
     bytes reserved = 5;  // reserved[64]
 }
 
-message es_event_setacl_t {
-    es_file_t target = 1;
-    es_set_or_clear_t set_or_clear = 2;
+message pb_es_event_setacl_t {
+    pb_es_file_t target = 1;
+    pb_es_set_or_clear_t set_or_clear = 2;
     oneof acl {
-        es_acl_t set = 3;  // Replace es_acl_t with the actual type if needed
+        pb_es_acl_t set = 3;  // Replace pb_es_acl_t with the actual type if needed
     }
     bytes reserved = 4;  // reserved[64]
 }
 
-message es_event_pty_grant_t {
+message pb_es_event_pty_grant_t {
     int64 dev = 1;
     bytes reserved = 2;  // reserved[64]
 }
 
-message es_event_pty_close_t {
+message pb_es_event_pty_close_t {
     int64 dev = 1;
     bytes reserved = 2;  // reserved[64]
 }
 
-message es_event_proc_check_t {
-    es_process_t target = 1;
-    es_proc_check_type_t type = 2;
+message pb_es_event_proc_check_t {
+    pb_es_process_t target = 1;
+    pb_es_proc_check_type_t type = 2;
     int32 flavor = 3;
     bytes reserved = 4;  // reserved[64]
 }
 
-message es_event_searchfs_t {
-    attrlist attrlist = 1;  // Define attrlist structure as needed
-    es_file_t target = 2;
+message pb_es_event_searchfs_t {
+    pb_attrlist pb_attrlist = 1;  // Define pb_attrlist structure as needed
+    pb_es_file_t target = 2;
     bytes reserved = 3;  // reserved[64]
 }
 
-enum es_proc_suspend_resume_type_t {
-    ES_PROC_SUSPEND_RESUME_TYPE_SUSPEND = 0;
-    ES_PROC_SUSPEND_RESUME_TYPE_RESUME = 1;
-    ES_PROC_SUSPEND_RESUME_TYPE_SHUTDOWN_SOCKETS = 3;
+enum pb_es_proc_suspend_resume_type_t {
+    PB_ES_PROC_SUSPEND_RESUME_TYPE_SUSPEND = 0;
+    PB_ES_PROC_SUSPEND_RESUME_TYPE_RESUME = 1;
+    PB_ES_PROC_SUSPEND_RESUME_TYPE_SHUTDOWN_SOCKETS = 3;
 }
 
-message es_event_proc_suspend_resume_t {
-    es_process_t target = 1;
-    es_proc_suspend_resume_type_t type = 2;
+message pb_es_event_proc_suspend_resume_t {
+    pb_es_process_t target = 1;
+    pb_es_proc_suspend_resume_type_t type = 2;
     bytes reserved = 3;  // reserved[64]
 }
 
-message es_event_cs_invalidated_t {
+message pb_es_event_cs_invalidated_t {
     bytes reserved = 1;  // reserved[64]
 }
 
-message es_event_trace_t {
-    es_process_t target = 1;
+message pb_es_event_trace_t {
+    pb_es_process_t target = 1;
     bytes reserved = 2;  // reserved[64]
 }
 
-message es_event_remote_thread_create_t {
-    es_process_t target = 1;
-    es_thread_state_t thread_state = 2;  // thread_state is nullable
+message pb_es_event_remote_thread_create_t {
+    pb_es_process_t target = 1;
+    pb_es_thread_state_t thread_state = 2;  // thread_state is nullable
     bytes reserved = 3;  // reserved[64]
 }
 
-message es_event_setuid_t {
+message pb_es_event_setuid_t {
     uint32 uid = 1;
     bytes reserved = 2;  // reserved[64]
 }
 
-message es_event_setgid_t {
+message pb_es_event_setgid_t {
     uint32 gid = 1;
     bytes reserved = 2;  // reserved[64]
 }
 
-message es_event_seteuid_t {
+message pb_es_event_seteuid_t {
     uint32 euid = 1;
     bytes reserved = 2;  // reserved[64]
 }
 
-message es_event_setegid_t {
+message pb_es_event_setegid_t {
     uint32 egid = 1;
     bytes reserved = 2;  // reserved[64]
 }
 
-message es_event_setreuid_t {
+message pb_es_event_setreuid_t {
     uint32 ruid = 1;
     uint32 euid = 2;
     bytes reserved = 3;  // reserved[64]
 }
 
-message es_event_setregid_t {
+message pb_es_event_setregid_t {
     uint32 rgid = 1;
     uint32 egid = 2;
     bytes reserved = 3;  // reserved[64]
 }
 
-message es_event_authentication_od_t {
-    es_process_t instigator = 1;
-    es_string_token_t record_type = 2;
-    es_string_token_t record_name = 3;
-    es_string_token_t node_name = 4;
-    es_string_token_t db_path = 5;
-    audit_token_t instigator_token = 6;  // Available in message versions >= 8
+message pb_es_event_authentication_od_t {
+    pb_es_process_t instigator = 1;
+    pb_es_string_token_t record_type = 2;
+    pb_es_string_token_t record_name = 3;
+    pb_es_string_token_t node_name = 4;
+    pb_es_string_token_t db_path = 5;
+    pb_audit_token_t instigator_token = 6;  // Available in message versions >= 8
 }
 
-enum es_touchid_mode_t {
-    ES_TOUCHID_MODE_VERIFICATION = 0;
-    ES_TOUCHID_MODE_IDENTIFICATION = 1;
+enum pb_es_touchid_mode_t {
+    PB_ES_TOUCHID_MODE_VERIFICATION = 0;
+    PB_ES_TOUCHID_MODE_IDENTIFICATION = 1;
 }
 
-message es_event_authentication_touchid_t {
-    es_process_t instigator = 1;
-    es_touchid_mode_t touchid_mode = 2;
+message pb_es_event_authentication_touchid_t {
+    pb_es_process_t instigator = 1;
+    pb_es_touchid_mode_t touchid_mode = 2;
     bool has_uid_flag = 3; // renamed from has_uid_flag to prevent colliion with generated code function name
     oneof uid_union {
         uint32 uid = 4;
     }
-    audit_token_t instigator_token = 5;  // Available in message versions >= 8
+    pb_audit_token_t instigator_token = 5;  // Available in message versions >= 8
 }
 
-message es_event_authentication_token_t {
-    es_process_t instigator = 1;
-    es_string_token_t pubkey_hash = 2;
-    es_string_token_t token_id = 3;
-    es_string_token_t kerberos_principal = 4;
-    audit_token_t instigator_token = 5;  // Available in message versions >= 8
+message pb_es_event_authentication_token_t {
+    pb_es_process_t instigator = 1;
+    pb_es_string_token_t pubkey_hash = 2;
+    pb_es_string_token_t token_id = 3;
+    pb_es_string_token_t kerberos_principal = 4;
+    pb_audit_token_t instigator_token = 5;  // Available in message versions >= 8
 }
 
-enum es_auto_unlock_type_t {
-    ES_AUTO_UNLOCK_MACHINE_UNLOCK = 0;
-    ES_AUTO_UNLOCK_AUTH_PROMPT = 1;
+enum pb_es_auto_unlock_type_t {
+    PB_ES_AUTO_UNLOCK_MACHINE_UNLOCK = 0;
+    PB_ES_AUTO_UNLOCK_AUTH_PROMPT = 1;
 }
 
-message es_event_authentication_auto_unlock_t {
-    es_string_token_t username = 1;
-    es_auto_unlock_type_t type = 2;
+message pb_es_event_authentication_auto_unlock_t {
+    pb_es_string_token_t username = 1;
+    pb_es_auto_unlock_type_t type = 2;
 }
 
-message es_event_authentication_t {
+message pb_es_event_authentication_t {
     bool success = 1;
-    es_authentication_type_t type = 2;
+    pb_es_authentication_type_t type = 2;
     oneof data {
-        es_event_authentication_od_t od = 3;
-        es_event_authentication_touchid_t touchid = 4;
-        es_event_authentication_token_t token = 5;
-        es_event_authentication_auto_unlock_t auto_unlock = 6;
+        pb_es_event_authentication_od_t od = 3;
+        pb_es_event_authentication_touchid_t touchid = 4;
+        pb_es_event_authentication_token_t token = 5;
+        pb_es_event_authentication_auto_unlock_t auto_unlock = 6;
     }
 }
 
-message es_event_xp_malware_detected_t {
-    es_string_token_t signature_version = 1;
-    es_string_token_t malware_identifier = 2;
-    es_string_token_t incident_identifier = 3;
-    es_string_token_t detected_path = 4;
+message pb_es_event_xp_malware_detected_t {
+    pb_es_string_token_t signature_version = 1;
+    pb_es_string_token_t malware_identifier = 2;
+    pb_es_string_token_t incident_identifier = 3;
+    pb_es_string_token_t detected_path = 4;
 }
 
-message es_event_xp_malware_remediated_t {
-    es_string_token_t signature_version = 1;
-    es_string_token_t malware_identifier = 2;
-    es_string_token_t incident_identifier = 3;
-    es_string_token_t action_type = 4;
+message pb_es_event_xp_malware_remediated_t {
+    pb_es_string_token_t signature_version = 1;
+    pb_es_string_token_t malware_identifier = 2;
+    pb_es_string_token_t incident_identifier = 3;
+    pb_es_string_token_t action_type = 4;
     bool success = 5;
-    es_string_token_t result_description = 6;
-    es_string_token_t remediated_path = 7;
-    audit_token_t remediated_process_audit_token = 8;  // nullable
+    pb_es_string_token_t result_description = 6;
+    pb_es_string_token_t remediated_path = 7;
+    pb_audit_token_t remediated_process_audit_token = 8;  // nullable
 }
 
 message uint32 {
     uint32 graphical_session_id = 1;
 }
 
-message es_event_lw_session_login_t {
-    es_string_token_t username = 1;
+message pb_es_event_lw_session_login_t {
+    pb_es_string_token_t username = 1;
     uint32 graphical_session_id = 2;
 }
 
-message es_event_lw_session_logout_t {
-    es_string_token_t username = 1;
+message pb_es_event_lw_session_logout_t {
+    pb_es_string_token_t username = 1;
     uint32 graphical_session_id = 2;
 }
 
-message es_event_lw_session_lock_t {
-    es_string_token_t username = 1;
+message pb_es_event_lw_session_lock_t {
+    pb_es_string_token_t username = 1;
     uint32 graphical_session_id = 2;
 }
 
-message es_event_lw_session_unlock_t {
-    es_string_token_t username = 1;
+message pb_es_event_lw_session_unlock_t {
+    pb_es_string_token_t username = 1;
     uint32 graphical_session_id = 2;
 }
 
-message es_event_screensharing_attach_t {
+message pb_es_event_screensharing_attach_t {
     bool success = 1;
-    es_address_type_t source_address_type = 2;
-    es_string_token_t source_address = 3;
-    es_string_token_t viewer_appleid = 4;
-    es_string_token_t authentication_type = 5;
-    es_string_token_t authentication_username = 6;
-    es_string_token_t session_username = 7;
+    pb_es_address_type_t source_address_type = 2;
+    pb_es_string_token_t source_address = 3;
+    pb_es_string_token_t viewer_appleid = 4;
+    pb_es_string_token_t authentication_type = 5;
+    pb_es_string_token_t authentication_username = 6;
+    pb_es_string_token_t session_username = 7;
     bool existing_session = 8;
     uint32 graphical_session_id = 9;
 }
 
-message es_event_screensharing_detach_t {
-    es_address_type_t source_address_type = 1;
-    es_string_token_t source_address = 2;
-    es_string_token_t viewer_appleid = 3;
+message pb_es_event_screensharing_detach_t {
+    pb_es_address_type_t source_address_type = 1;
+    pb_es_string_token_t source_address = 2;
+    pb_es_string_token_t viewer_appleid = 3;
     uint32 graphical_session_id = 4;
 }
 
-enum es_openssh_login_result_type_t {
-    ES_OPENSSH_LOGIN_EXCEED_MAXTRIES = 0;
-    ES_OPENSSH_LOGIN_ROOT_DENIED = 1;
-    ES_OPENSSH_AUTH_SUCCESS = 2;
-    ES_OPENSSH_AUTH_FAIL_NONE = 3;
-    ES_OPENSSH_AUTH_FAIL_PASSWD = 4;
-    ES_OPENSSH_AUTH_FAIL_KBDINT = 5;
-    ES_OPENSSH_AUTH_FAIL_PUBKEY = 6;
-    ES_OPENSSH_AUTH_FAIL_HOSTBASED = 7;
-    ES_OPENSSH_AUTH_FAIL_GSSAPI = 8;
-    ES_OPENSSH_INVALID_USER = 9;
+enum pb_es_openssh_login_result_type_t {
+    PB_ES_OPENSSH_LOGIN_EXCEED_MAXTRIES = 0;
+    PB_ES_OPENSSH_LOGIN_ROOT_DENIED = 1;
+    PB_ES_OPENSSH_AUTH_SUCCESS = 2;
+    PB_ES_OPENSSH_AUTH_FAIL_NONE = 3;
+    PB_ES_OPENSSH_AUTH_FAIL_PASSWD = 4;
+    PB_ES_OPENSSH_AUTH_FAIL_KBDINT = 5;
+    PB_ES_OPENSSH_AUTH_FAIL_PUBKEY = 6;
+    PB_ES_OPENSSH_AUTH_FAIL_HOSTBASED = 7;
+    PB_ES_OPENSSH_AUTH_FAIL_GSSAPI = 8;
+    PB_ES_OPENSSH_INVALID_USER = 9;
 }
 
-message es_event_openssh_login_t {
+message pb_es_event_openssh_login_t {
     bool success = 1;
-    es_openssh_login_result_type_t result_type = 2;
-    es_address_type_t source_address_type = 3;
-    es_string_token_t source_address = 4;
-    es_string_token_t username = 5;
+    pb_es_openssh_login_result_type_t result_type = 2;
+    pb_es_address_type_t source_address_type = 3;
+    pb_es_string_token_t source_address = 4;
+    pb_es_string_token_t username = 5;
     bool has_uid_flag = 6;
     oneof uid_union {
         uint32 uid = 7;
     }
 }
 
-message es_event_openssh_logout_t {
-    es_address_type_t source_address_type = 1;
-    es_string_token_t source_address = 2;
-    es_string_token_t username = 3;
+message pb_es_event_openssh_logout_t {
+    pb_es_address_type_t source_address_type = 1;
+    pb_es_string_token_t source_address = 2;
+    pb_es_string_token_t username = 3;
     uint32 uid = 4;
 }
 
-message es_event_login_login_t {
+message pb_es_event_login_login_t {
     bool success = 1;
-    es_string_token_t failure_message = 2;
-    es_string_token_t username = 3;
+    pb_es_string_token_t failure_message = 2;
+    pb_es_string_token_t username = 3;
     bool has_uid_flag = 4;
     oneof uid_union {
         uint32 uid = 5;
     }
 }
 
-message es_event_login_logout_t {
-    es_string_token_t username = 1;
+message pb_es_event_login_logout_t {
+    pb_es_string_token_t username = 1;
     uint32 uid = 2;
 }
 
-message es_event_btm_launch_item_add_t {
-    es_process_t instigator = 1;
-    es_process_t app = 2;
-    es_btm_launch_item_t item = 3;  // Replace with the actual definition of es_btm_launch_item_t
-    es_string_token_t executable_path = 4;
-    audit_token_t instigator_token = 5;  // Nullable, available in message versions >= 8
-    audit_token_t app_token = 6;         // Nullable, available in message versions >= 8
+message pb_es_event_btm_launch_item_add_t {
+    pb_es_process_t instigator = 1;
+    pb_es_process_t app = 2;
+    pb_es_btm_launch_item_t item = 3;  // Replace with the actual definition of pb_es_btm_launch_item_t
+    pb_es_string_token_t executable_path = 4;
+    pb_audit_token_t instigator_token = 5;  // Nullable, available in message versions >= 8
+    pb_audit_token_t app_token = 6;         // Nullable, available in message versions >= 8
 }
 
-message es_event_btm_launch_item_remove_t {
-    es_process_t instigator = 1;
-    es_process_t app = 2;
-    es_btm_launch_item_t item = 3;  // Replace with the actual definition of es_btm_launch_item_t
-    audit_token_t instigator_token = 4;  // Nullable, available in message versions >= 8
-    audit_token_t app_token = 5;         // Nullable, available in message versions >= 8
+message pb_es_event_btm_launch_item_remove_t {
+    pb_es_process_t instigator = 1;
+    pb_es_process_t app = 2;
+    pb_es_btm_launch_item_t item = 3;  // Replace with the actual definition of pb_es_btm_launch_item_t
+    pb_audit_token_t instigator_token = 4;  // Nullable, available in message versions >= 8
+    pb_audit_token_t app_token = 5;         // Nullable, available in message versions >= 8
 }
 
-message es_event_su_t {
+message pb_es_event_su_t {
     bool success = 1;
-    es_string_token_t failure_message = 2;
+    pb_es_string_token_t failure_message = 2;
     uint32 from_uid = 3;
-    es_string_token_t from_username = 4;
+    pb_es_string_token_t from_username = 4;
     bool has_to_uid_flag = 5;  //rename to prevent collision with generated code
     oneof to_uid_union {
         uint32 to_uid = 6;
     }
-    es_string_token_t to_username = 7;
-    es_string_token_t shell = 8;
-    repeated es_string_token_t argv = 9;
-    repeated es_string_token_t env = 10;
+    pb_es_string_token_t to_username = 7;
+    pb_es_string_token_t shell = 8;
+    repeated pb_es_string_token_t argv = 9;
+    repeated pb_es_string_token_t env = 10;
 }
 
-message es_sudo_reject_info {
-    es_string_token_t plugin_name = 1;
-    es_sudo_plugin_type_t plugin_type = 2;  // Define es_sudo_plugin_type_t as needed
-    es_string_token_t failure_message = 3;
+message pb_es_sudo_reject_info {
+    pb_es_string_token_t plugin_name = 1;
+    pb_es_sudo_plugin_type_t plugin_type = 2;  // Define pb_es_sudo_plugin_type_t as needed
+    pb_es_string_token_t failure_message = 3;
 }
 
-message es_event_sudo_t {
+message pb_es_event_sudo_t {
     bool success = 1;
-    es_event_sudo_t reject_info = 2;  // Nullable
+    pb_es_event_sudo_t reject_info = 2;  // Nullable
     bool has_from_uid_flag = 3;  //renamed to prevent name collision with generated code
     oneof from_uid_union {
         uint32 from_uid = 4;
     }
-    es_string_token_t from_username = 5;
+    pb_es_string_token_t from_username = 5;
     bool has_to_uid_flag = 6;
     oneof to_uid_union {
         uint32 to_uid = 7;
     }
-    es_string_token_t to_username = 8;
-    es_string_token_t command = 9;
+    pb_es_string_token_t to_username = 8;
+    pb_es_string_token_t command = 9;
 }
 
-message es_event_profile_add_t {
-    es_process_t instigator = 1;  // Nullable
+message pb_es_event_profile_add_t {
+    pb_es_process_t instigator = 1;  // Nullable
     bool is_update = 2;
-    es_profile_t profile = 3;  // Define es_profile_t as needed
-    audit_token_t instigator_token = 4;  // Available in message versions >= 8
+    pb_es_profile_t profile = 3;  // Define pb_es_profile_t as needed
+    pb_audit_token_t instigator_token = 4;  // Available in message versions >= 8
 }
 
-message es_event_profile_remove_t {
-    es_process_t instigator = 1;  // Nullable
-    es_profile_t profile = 2;     // Define es_profile_t as needed
-    audit_token_t instigator_token = 3;  // Available in message versions >= 8
+message pb_es_event_profile_remove_t {
+    pb_es_process_t instigator = 1;  // Nullable
+    pb_es_profile_t profile = 2;     // Define pb_es_profile_t as needed
+    pb_audit_token_t instigator_token = 3;  // Available in message versions >= 8
 }
 
-message es_event_authorization_petition_t {
-    es_process_t instigator = 1;  // Nullable
-    es_process_t petitioner = 2;  // Nullable
+message pb_es_event_authorization_petition_t {
+    pb_es_process_t instigator = 1;  // Nullable
+    pb_es_process_t petitioner = 2;  // Nullable
     uint32 flags = 3;
-    repeated es_string_token_t rights = 4;  // Array of rights
-    audit_token_t instigator_token = 5;    // Available in message versions >= 8
-    audit_token_t petitioner_token = 6;    // Available in message versions >= 8
+    repeated pb_es_string_token_t rights = 4;  // Array of rights
+    pb_audit_token_t instigator_token = 5;    // Available in message versions >= 8
+    pb_audit_token_t petitioner_token = 6;    // Available in message versions >= 8
 }
 
-message es_authorization_result_t {
-    es_string_token_t right_name = 1;
-    es_authorization_rule_class_t rule_class = 2;  // Define es_authorization_rule_class_t as needed
+message pb_es_authorization_result_t {
+    pb_es_string_token_t right_name = 1;
+    pb_es_authorization_rule_class_t rule_class = 2;  // Define pb_es_authorization_rule_class_t as needed
     bool granted = 3;
 }
 
-message es_event_authorization_judgement_t {
-    es_process_t instigator = 1;  // Nullable
-    es_process_t petitioner = 2;  // Nullable
+message pb_es_event_authorization_judgement_t {
+    pb_es_process_t instigator = 1;  // Nullable
+    pb_es_process_t petitioner = 2;  // Nullable
     int32 return_code = 3;
-    repeated es_authorization_result_t results = 4;
-    audit_token_t instigator_token = 5;  // Available in message versions >= 8
-    audit_token_t petitioner_token = 6;  // Available in message versions >= 8
+    repeated pb_es_authorization_result_t results = 4;
+    pb_audit_token_t instigator_token = 5;  // Available in message versions >= 8
+    pb_audit_token_t petitioner_token = 6;  // Available in message versions >= 8
 }
 
 // Define common types
-message es_od_member_id_t {
+message pb_es_od_member_id_t {
     enum MemberType {
         UUID = 0;
         NAME = 1;
@@ -929,7 +1105,7 @@ message es_od_member_id_t {
     }
 }
 
-message es_od_member_id_array_t {
+message pb_es_od_member_id_array_t {
     enum MemberType {
         UUID = 0;
         NAME = 1;
@@ -938,92 +1114,92 @@ message es_od_member_id_array_t {
     MemberType member_type = 1;
     uint32 member_count = 2;
     oneof member_array {
-        es_string_token_t uuids = 3; // GJA
-        es_string_token_t names = 4; // GJA
+        pb_es_string_token_t uuids = 3; // GJA
+        pb_es_string_token_t names = 4; // GJA
     }
 }
 
-message es_event_od_group_add_t {
-    es_process_t instigator = 1;
+message pb_es_event_od_group_add_t {
+    pb_es_process_t instigator = 1;
     int32 error_code = 2;
     string group_name = 3;
-    es_od_member_id_t member = 4;
+    pb_es_od_member_id_t member = 4;
     string node_name = 5;
     string db_path = 6;
-    audit_token_t instigator_token = 7;
+    pb_audit_token_t instigator_token = 7;
 }
 
-message es_event_od_group_remove_t {
-    es_process_t instigator = 1;
+message pb_es_event_od_group_remove_t {
+    pb_es_process_t instigator = 1;
     int32 error_code = 2;
     string group_name = 3;
-    es_od_member_id_t member = 4;
+    pb_es_od_member_id_t member = 4;
     string node_name = 5;
     string db_path = 6;
-    audit_token_t instigator_token = 7;
+    pb_audit_token_t instigator_token = 7;
 }
 
-message es_event_od_group_set_t {
-    es_process_t instigator = 1;
+message pb_es_event_od_group_set_t {
+    pb_es_process_t instigator = 1;
     int32 error_code = 2;
     string group_name = 3;
-    es_od_member_id_array_t members = 4;
+    pb_es_od_member_id_array_t members = 4;
     string node_name = 5;
     string db_path = 6;
-    audit_token_t instigator_token = 7;
+    pb_audit_token_t instigator_token = 7;
 }
 
-message es_event_od_modify_password_t {
-    es_process_t instigator = 1;
+message pb_es_event_od_modify_password_t {
+    pb_es_process_t instigator = 1;
     int32 error_code = 2;
     string account_name = 3;
     string node_name = 4;
     string db_path = 5;
-    audit_token_t instigator_token = 6;
+    pb_audit_token_t instigator_token = 6;
 }
 
-message es_event_od_disable_user_t {
-    es_process_t instigator = 1;
+message pb_es_event_od_disable_user_t {
+    pb_es_process_t instigator = 1;
     int32 error_code = 2;
     string user_name = 3;
     string node_name = 4;
     string db_path = 5;
-    audit_token_t instigator_token = 6;
+    pb_audit_token_t instigator_token = 6;
 }
 
-message es_event_od_enable_user_t {
-    es_process_t instigator = 1;
+message pb_es_event_od_enable_user_t {
+    pb_es_process_t instigator = 1;
     int32 error_code = 2;
     string user_name = 3;
     string node_name = 4;
     string db_path = 5;
-    audit_token_t instigator_token = 6;
+    pb_audit_token_t instigator_token = 6;
 }
 
-message es_event_od_attribute_value_add_t {
-    es_process_t instigator = 1;
+message pb_es_event_od_attribute_value_add_t {
+    pb_es_process_t instigator = 1;
     int32 error_code = 2;
     string record_name = 3;
     string attribute_name = 4;
     string attribute_value = 5;
     string node_name = 6;
     string db_path = 7;
-    audit_token_t instigator_token = 8;
+    pb_audit_token_t instigator_token = 8;
 }
 
-message es_event_od_attribute_value_remove_t {
-    es_process_t instigator = 1;
+message pb_es_event_od_attribute_value_remove_t {
+    pb_es_process_t instigator = 1;
     int32 error_code = 2;
     string record_name = 3;
     string attribute_name = 4;
     string attribute_value = 5;
     string node_name = 6;
     string db_path = 7;
-    audit_token_t instigator_token = 8;
+    pb_audit_token_t instigator_token = 8;
 }
 
-message es_event_od_attribute_set_t {
-    es_process_t instigator = 1;
+message pb_es_event_od_attribute_set_t {
+    pb_es_process_t instigator = 1;
     int32 error_code = 2;
     string record_name = 3;
     string attribute_name = 4;
@@ -1031,247 +1207,193 @@ message es_event_od_attribute_set_t {
     repeated string attribute_values = 6;
     string node_name = 7;
     string db_path = 8;
-    audit_token_t instigator_token = 9;
+    pb_audit_token_t instigator_token = 9;
 }
 
-message es_event_od_create_user_t {
-    es_process_t instigator = 1;
+message pb_es_event_od_create_user_t {
+    pb_es_process_t instigator = 1;
     int32 error_code = 2;
     string user_name = 3;
     string node_name = 4;
     string db_path = 5;
-    audit_token_t instigator_token = 6;
+    pb_audit_token_t instigator_token = 6;
 }
 
-message es_event_od_create_group_t {
-    es_process_t instigator = 1;
+message pb_es_event_od_create_group_t {
+    pb_es_process_t instigator = 1;
     int32 error_code = 2;
     string group_name = 3;
     string node_name = 4;
     string db_path = 5;
-    audit_token_t instigator_token = 6;
+    pb_audit_token_t instigator_token = 6;
 }
 
-message es_event_od_delete_user_t {
-    es_process_t instigator = 1;
+message pb_es_event_od_delete_user_t {
+    pb_es_process_t instigator = 1;
     int32 error_code = 2;
     string user_name = 3;
     string node_name = 4;
     string db_path = 5;
-    audit_token_t instigator_token = 6;
+    pb_audit_token_t instigator_token = 6;
 }
 
-message es_event_od_delete_group_t {
-    es_process_t instigator = 1;
+message pb_es_event_od_delete_group_t {
+    pb_es_process_t instigator = 1;
     int32 error_code = 2;
     string group_name = 3;
     string node_name = 4;
     string db_path = 5;
-    audit_token_t instigator_token = 6;
+    pb_audit_token_t instigator_token = 6;
 }
 
-message es_event_xpc_connect_t {
+message pb_es_event_xpc_connect_t {
     string service_name = 1;
     string service_domain_type = 2;
 }
 
-message es_event_gatekeeper_user_override_t {
+message pb_es_event_gatekeeper_user_override_t {
     string file_path = 1;
-    es_file_t file = 2;
+    pb_es_file_t file = 2;
     string sha256 = 3;
-    es_signed_file_info_t signing_info = 4;
+    pb_es_signed_file_info_t signing_info = 4;
 }
 
-message es_result_t {
-    enum ResultType {
-        AUTH_RESULT = 0;
-        FLAGS_RESULT = 1;
-        RESERVED_RESULT = 2;
-    }
-
-    ResultType result_type = 1;
+message pb_es_result_t {
+    pb_es_result_type_t result_type = 1;
     oneof result {
-        es_auth_result_t auth = 2;
+        pb_es_auth_result_t auth = 2;
         uint32 flags = 3;
         bytes reserved = 4;
     }
 }
 
-message es_events_t {
+message pb_es_events_t {
     oneof event {
-        es_event_access_t access = 1;
-        es_event_chdir_t chdir = 2;
-        es_event_chroot_t chroot = 3;
-        es_event_clone_t clone = 4;
-        es_event_close_t close = 5;
-        es_event_copyfile_t copyfile = 6;
-        es_event_create_t create = 7;
-        es_event_cs_invalidated_t cs_invalidated = 8;
-        es_event_deleteextattr_t deleteextattr = 9;
-        es_event_dup_t dup = 10;
-        es_event_truncate_t exchangedat = 11;
-        es_event_exec_t exec = 12;
-        es_event_exit_t exit = 13;
-        es_event_file_provider_materialize_t file_provider_materialize = 14;
-        es_event_file_provider_update_t file_provider_update = 15;
-        es_event_fcntl_t fcntl = 16;
-        es_event_fork_t fork = 17;
-        es_event_fsgetpath_t fsgetpath = 18;
-        es_event_get_task_t get_task = 19;
-        es_event_get_task_read_t get_task_read = 20;
-        es_event_get_task_inspect_t get_task_inspect = 21;
-        es_event_get_task_name_t get_task_name = 22;
-        es_event_getattrlist_t getattrlist = 23;
-        es_event_getextattr_t getextattr = 24;
-        es_event_iokit_open_t iokit_open = 25;
-        es_event_kextload_t kextload = 26;
-        es_event_kextunload_t kextunload = 27;
-        es_event_link_t link = 28;
-        es_event_listextattr_t listextattr = 29;
-        es_event_lookup_t lookup = 30;
-        es_event_mmap_t mmap = 31;
-        es_event_mount_t mount = 32;
-        es_event_mprotect_t mprotect = 33;
-        es_event_open_t open = 34;
-        es_event_proc_check_t proc_check = 35;
-        es_event_proc_suspend_resume_t proc_suspend_resume = 36;
-        es_event_pty_close_t pty_close = 37;
-        es_event_pty_grant_t pty_grant = 38;
-        es_event_readdir_t readdi = 39;
-        es_event_readlink_t readlink = 40;
-        es_event_remote_thread_create_t remote_thread_create = 41;
-        es_event_remount_t remount = 42;
-        es_event_rename_t rename = 43;
-        es_event_searchfs_t searchfs = 44;
-        es_event_setacl_t setacl = 45;
-        es_event_setattrlist_t setattrlist = 46;
-        es_event_setextattr_t setextattr = 47;
-        es_event_setflags_t setflags = 48;
-        es_event_setmode_t setmode = 49;
-        es_event_setowner_t setowner = 50;
-        es_event_settime_t settime = 51;
-        es_event_setuid_t setuid = 52;
-        es_event_setgid_t setgid = 53;
-        es_event_seteuid_t seteuid = 54;
-        es_event_setegid_t setegid = 55;
-        es_event_setreuid_t setreuid = 56;
-        es_event_setregid_t setregid = 57;
-        es_event_signal_t signal = 58;
-        es_event_stat_t stat = 59;
-        es_event_trace_t trace = 60;
-        es_event_truncate_t truncate = 61;
-        es_event_uipc_bind_t uipc_bind = 62;
-        es_event_uipc_connect_t uipc_connect = 63;
-        es_event_unlink_t unlink = 64;
-        es_event_unmount_t unmount = 65;
-        es_event_utimes_t utimes = 66;
-        es_event_write_t write = 67;
+        pb_es_event_access_t access = 1;
+        pb_es_event_chdir_t chdir = 2;
+        pb_es_event_chroot_t chroot = 3;
+        pb_es_event_clone_t clone = 4;
+        pb_es_event_close_t close = 5;
+        pb_es_event_copyfile_t copyfile = 6;
+        pb_es_event_create_t create = 7;
+        pb_es_event_cs_invalidated_t cs_invalidated = 8;
+        pb_es_event_deleteextattr_t deleteextattr = 9;
+        pb_es_event_dup_t dup = 10;
+        pb_es_event_truncate_t exchangedat = 11;
+        pb_es_event_exec_t exec = 12;
+        pb_es_event_exit_t exit = 13;
+        pb_es_event_file_provider_materialize_t file_provider_materialize = 14;
+        pb_es_event_file_provider_update_t file_provider_update = 15;
+        pb_es_event_fcntl_t fcntl = 16;
+        pb_es_event_fork_t fork = 17;
+        pb_es_event_fsgetpath_t fsgetpath = 18;
+        pb_es_event_get_task_t get_task = 19;
+        pb_es_event_get_task_read_t get_task_read = 20;
+        pb_es_event_get_task_inspect_t get_task_inspect = 21;
+        pb_es_event_get_task_name_t get_task_name = 22;
+        pb_es_event_getattrlist_t getattrlist = 23;
+        pb_es_event_getextattr_t getextattr = 24;
+        pb_es_event_iokit_open_t iokit_open = 25;
+        pb_es_event_kextload_t kextload = 26;
+        pb_es_event_kextunload_t kextunload = 27;
+        pb_es_event_link_t link = 28;
+        pb_es_event_listextattr_t listextattr = 29;
+        pb_es_event_lookup_t lookup = 30;
+        pb_es_event_mmap_t mmap = 31;
+        pb_es_event_mount_t mount = 32;
+        pb_es_event_mprotect_t mprotect = 33;
+        pb_es_event_open_t open = 34;
+        pb_es_event_proc_check_t proc_check = 35;
+        pb_es_event_proc_suspend_resume_t proc_suspend_resume = 36;
+        pb_es_event_pty_close_t pty_close = 37;
+        pb_es_event_pty_grant_t pty_grant = 38;
+        pb_es_event_readdir_t readdi = 39;
+        pb_es_event_readlink_t readlink = 40;
+        pb_es_event_remote_thread_create_t remote_thread_create = 41;
+        pb_es_event_remount_t remount = 42;
+        pb_es_event_rename_t rename = 43;
+        pb_es_event_searchfs_t searchfs = 44;
+        pb_es_event_setacl_t setacl = 45;
+        pb_es_event_setattrlist_t setattrlist = 46;
+        pb_es_event_setextattr_t setextattr = 47;
+        pb_es_event_setflags_t setflags = 48;
+        pb_es_event_setmode_t setmode = 49;
+        pb_es_event_setowner_t setowner = 50;
+        pb_es_event_settime_t settime = 51;
+        pb_es_event_setuid_t setuid = 52;
+        pb_es_event_setgid_t setgid = 53;
+        pb_es_event_seteuid_t seteuid = 54;
+        pb_es_event_setegid_t setegid = 55;
+        pb_es_event_setreuid_t setreuid = 56;
+        pb_es_event_setregid_t setregid = 57;
+        pb_es_event_signal_t signal = 58;
+        pb_es_event_stat_t pb_stat = 59;
+        pb_es_event_trace_t trace = 60;
+        pb_es_event_truncate_t truncate = 61;
+        pb_es_event_uipc_bind_t uipc_bind = 62;
+        pb_es_event_uipc_connect_t uipc_connect = 63;
+        pb_es_event_unlink_t unlink = 64;
+        pb_es_event_unmount_t unmount = 65;
+        pb_es_event_utimpb_es_t utimes = 66;
+        pb_es_event_write_t write = 67;
 
         /**
         * Events added in macOS 13.0 or later use nonnull pointers.
         */
-        es_event_authentication_t authentication = 68;
-        es_event_xp_malware_detected_t xp_malware_detected = 69;
-        es_event_xp_malware_remediated_t xp_malware_remediated = 70;
-        es_event_lw_session_login_t lw_session_login = 71;
-        es_event_lw_session_logout_t lw_session_logout = 72;
-        es_event_lw_session_lock_t lw_session_lock = 73;
-        es_event_lw_session_unlock_t lw_session_unlock = 74;
-        es_event_screensharing_attach_t screensharing_attach = 75;
-        es_event_screensharing_detach_t screensharing_detach = 76;
-        es_event_openssh_login_t openssh_login = 77;
-        es_event_openssh_logout_t openssh_logou = 78;
-        es_event_login_login_t login_login = 79;
-        es_event_login_logout_t login_logout = 80;
-        es_event_btm_launch_item_add_t btm_launch_item_add = 81;
-        es_event_btm_launch_item_remove_t btm_launch_item_remove = 82;
-        es_event_profile_add_t profile_add = 83;
-        es_event_profile_remove_t profile_remove = 84;
-        es_event_su_t su = 85;
-        es_event_authorization_petition_t authorization_petition = 86;
-        es_event_authorization_judgement_t authorization_judgement = 87;
-        es_event_sudo_t sudo = 88;
-        es_event_od_group_add_t od_group_add = 89;
-        es_event_od_group_remove_t od_group_remove = 90;
-        es_event_od_group_set_t od_group_set = 91;
-        es_event_od_modify_password_t od_modify_password = 92;
-        es_event_od_disable_user_t od_disable_user = 93;
-        es_event_od_enable_user_t od_enable_user = 94;
-        es_event_od_attribute_value_add_t od_attribute_value_add = 95;
-        es_event_od_attribute_value_remove_t od_attribute_value_remove = 96;
-        es_event_od_attribute_set_t od_attribute_set = 97;
-        es_event_od_create_user_t od_create_user = 98;
-        es_event_od_create_group_t od_create_group = 99;
-        es_event_od_delete_user_t od_delete_user = 100;
-        es_event_od_delete_group_t od_delete_group = 101;
-        es_event_xpc_connect_t xpc_connect = 102;
-        es_event_gatekeeper_user_override_t gatekeeper_user_override = 103;
+        pb_es_event_authentication_t authentication = 68;
+        pb_es_event_xp_malware_detected_t xp_malware_detected = 69;
+        pb_es_event_xp_malware_remediated_t xp_malware_remediated = 70;
+        pb_es_event_lw_session_login_t lw_session_login = 71;
+        pb_es_event_lw_session_logout_t lw_session_logout = 72;
+        pb_es_event_lw_session_lock_t lw_session_lock = 73;
+        pb_es_event_lw_session_unlock_t lw_session_unlock = 74;
+        pb_es_event_screensharing_attach_t screensharing_attach = 75;
+        pb_es_event_screensharing_detach_t screensharing_detach = 76;
+        pb_es_event_openssh_login_t openssh_login = 77;
+        pb_es_event_openssh_logout_t openssh_logou = 78;
+        pb_es_event_login_login_t login_login = 79;
+        pb_es_event_login_logout_t login_logout = 80;
+        pb_es_event_btm_launch_item_add_t btm_launch_item_add = 81;
+        pb_es_event_btm_launch_item_remove_t btm_launch_item_remove = 82;
+        pb_es_event_profile_add_t profile_add = 83;
+        pb_es_event_profile_remove_t profile_remove = 84;
+        pb_es_event_su_t su = 85;
+        pb_es_event_authorization_petition_t authorization_petition = 86;
+        pb_es_event_authorization_judgement_t authorization_judgement = 87;
+        pb_es_event_sudo_t sudo = 88;
+        pb_es_event_od_group_add_t od_group_add = 89;
+        pb_es_event_od_group_remove_t od_group_remove = 90;
+        pb_es_event_od_group_set_t od_group_set = 91;
+        pb_es_event_od_modify_password_t od_modify_password = 92;
+        pb_es_event_od_disable_user_t od_disable_user = 93;
+        pb_es_event_od_enable_user_t od_enable_user = 94;
+        pb_es_event_od_attribute_value_add_t od_attribute_value_add = 95;
+        pb_es_event_od_attribute_value_remove_t od_attribute_value_remove = 96;
+        pb_es_event_od_attribute_set_t od_attribute_set = 97;
+        pb_es_event_od_create_user_t od_create_user = 98;
+        pb_es_event_od_create_group_t od_create_group = 99;
+        pb_es_event_od_delete_user_t od_delete_user = 100;
+        pb_es_event_od_delete_group_t od_delete_group = 101;
+        pb_es_event_xpc_connect_t xpc_connect = 102;
+        pb_es_event_gatekeeper_user_override_t gatekeeper_user_override = 103;
     }
 }
 
-message es_message_t {
+message pb_es_message_t {
     uint32 version = 1;
     google.protobuf.Timestamp time = 2;
     uint64 mach_time = 3;
     uint64 deadline = 4;
-    es_process_t process = 5;
+    pb_es_process_t process = 5;
     uint64 seq_num = 6;
-    string action_type = 7;
+    pb_es_action_type_t action_type = 7;
     oneof action {
-        es_event_id_t auth = 8;
-        es_result_t notify = 9;
+        pb_es_event_id_t auth = 8;
+        pb_es_result_t notify = 9;
     }
     string event_type = 10;
-    es_events_t event = 11;
-    es_thread_t thread = 12;
+    pb_es_events_t event = 11;
+    pb_es_thread_t thread = 12;
     uint64 global_seq_num = 13;
     repeated uint64 opaque = 14;
-}
-
-
-
-
-/////////////////////////////////////
-
-message es_process_tO {
-    uint64 global_sequence_num = 1;
-
-    uint32 pid = 2;
-    uint32 ppid = 3;
-    uint32 start_time = 4;
-    uint64 start_time_ms = 5;
-    string pathname = 6;
-    bool discovered = 7;
-    uint64 parent_start_time = 8;
-    uint64 parent_start_time_ms = 9;
-}
-
-message Script {
-    string path = 1;
-}
-
-message EsExec {
-    es_process_t target = 1;
-    Script script = 2;
-}
-
-message EsFork {
-    es_process_t child = 1;
-}
-
-message EsExit {
-    uint64 global_sequence_num = 1;
-    uint32 stat = 2;
-    uint64 exit_time_ms = 3;
-}
-
-message EsEvent {
-    uint64 global_sequence_num = 1;
-    uint32 event_type = 2;
-
-    es_process_t process = 50;
-
-    EsExec exec = 100;
-    EsFork fork = 101;
-    EsExit exit = 102;
 }
