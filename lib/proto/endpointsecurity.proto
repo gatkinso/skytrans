@@ -86,7 +86,7 @@ message pb_stat {
 }
 
 message pb_audit_token_t {
-	repeated uint32 val = 1;  // max 8
+	bytes val = 1;  // max 8
 }
 
 message pb_es_string_token_t {
@@ -466,8 +466,8 @@ message pb_es_event_exec_t {
         pb_es_file_t script = 3;
         pb_es_file_t cwd = 4;
         int32 last_fd = 5;
-        int32 image_cpu_type_t = 6;
-        int32 image_cpu_subtype_t = 7;
+        int32 image_cpu_type = 6;
+        int32 image_cpu_subtype = 7;
     }
 }
 
@@ -598,8 +598,9 @@ message pb_es_event_create_t {
     oneof destination {
         pb_es_file_t existing_file = 2;
         pb_es_new_path_t new_path = 3;
+        uint32 mode = 4;
     }
-    pb_es_acl_t acl = 4; // Field available if message version >= 2
+    pb_es_acl_t acl = 5; // Field available if message version >= 2
 }
 
 message pb_es_event_exit_t {
