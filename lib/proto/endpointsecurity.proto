@@ -1351,7 +1351,7 @@ message pb_es_events_t {
         pb_es_event_screensharing_attach_t screensharing_attach = 75;
         pb_es_event_screensharing_detach_t screensharing_detach = 76;
         pb_es_event_openssh_login_t openssh_login = 77;
-        pb_es_event_openssh_logout_t openssh_logou = 78;
+        pb_es_event_openssh_logout_t openssh_logout = 78;
         pb_es_event_login_login_t login_login = 79;
         pb_es_event_login_logout_t login_logout = 80;
         pb_es_event_btm_launch_item_add_t btm_launch_item_add = 81;
