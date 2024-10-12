@@ -1268,6 +1268,11 @@ message pb_es_result_t {
     }
 }
 
+message pb_es_event_exchangedata_t {
+	pb_es_file_t file1 = 1;
+	pb_es_file_t file2 = 2;
+}
+
 message pb_es_events_t {
     oneof event {
         pb_es_event_access_t access = 1;
@@ -1280,7 +1285,7 @@ message pb_es_events_t {
         pb_es_event_cs_invalidated_t cs_invalidated = 8;
         pb_es_event_deleteextattr_t deleteextattr = 9;
         pb_es_event_dup_t dup = 10;
-        pb_es_event_truncate_t exchangedat = 11;
+        pb_es_event_exchangedata_t exchangedata = 11;
         pb_es_event_exec_t exec = 12;
         pb_es_event_exit_t exit = 13;
         pb_es_event_file_provider_materialize_t file_provider_materialize = 14;
