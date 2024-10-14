@@ -50,11 +50,6 @@ message pb_statfs {
     repeated int64 f_reserved4 = 20;        // For future use (4 elements)
 }
 
-message Timeval {
-    int64 tv_sec = 1;
-    int64 tv_usec = 2;
-}
-
 message pb_timespec {
     int64 tv_sec = 1;  // seconds
     int64 tv_nsec = 2; // nanoseconds
@@ -394,25 +389,6 @@ message pb_es_signed_file_info_t {
     pb_es_cd_hash_t cdhash = 1;
     string signing_id = 2;
     string team_id = 3;
-}
-
-message pb_es_process_t {
-    pb_audit_token_t audit_token = 1;
-    int32 ppid = 2;
-    int32 original_ppid = 3;
-    int32 group_id = 4;
-    int32 session_id = 5;
-    uint32 codesigning_flags = 6;
-    bool is_platform_binary = 7;
-    bool is_pb_es_client = 8;
-    pb_es_cd_hash_t cdhash = 9;
-    pb_es_string_token_t signing_id = 10;
-    pb_es_string_token_t team_id = 11;
-    pb_es_file_t executable = 12;
-    pb_es_file_t tty = 13;
-    Timeval start_time = 14;
-    pb_audit_token_t responsible_audit_token = 15;
-    pb_audit_token_t parent_audit_token = 16;
 }
 
 message pb_es_thread_state_t {
@@ -1383,6 +1359,25 @@ message pb_es_events_t {
         pb_es_event_xpc_connect_t xpc_connect = 102;
         pb_es_event_gatekeeper_user_override_t gatekeeper_user_override = 103;
     }
+}
+
+message pb_es_process_t {
+    pb_audit_token_t audit_token = 1;
+    int32 ppid = 2;
+    int32 original_ppid = 3;
+    int32 group_id = 4;
+    int32 session_id = 5;
+    uint32 codesigning_flags = 6;
+    bool is_platform_binary = 7;
+    bool is_pb_es_client = 8;
+    pb_es_cd_hash_t cdhash = 9;
+    pb_es_string_token_t signing_id = 10;
+    pb_es_string_token_t team_id = 11;
+    pb_es_file_t executable = 12;
+    pb_es_file_t tty = 13;
+    pb_timespec start_time = 14;
+    pb_audit_token_t responsible_audit_token = 15;
+    pb_audit_token_t parent_audit_token = 16;
 }
 
 message pb_es_message_t {
