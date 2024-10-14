@@ -55,7 +55,7 @@ message Timeval {
     int64 tv_usec = 2;
 }
 
-message Timespec {
+message pb_timespec {
     int64 tv_sec = 1;  // seconds
     int64 tv_nsec = 2; // nanoseconds
 }
@@ -69,10 +69,10 @@ message pb_stat {
     uint32 st_gid = 6;          // Group ID of the file
     uint64 st_rdev = 7;         // Device ID
 
-    // Use Timespec for time fields (for systems with high resolution time)
-    Timespec st_atimespec = 8;  // Time of last access
-    Timespec st_mtimespec = 9;  // Time of last data modification
-    Timespec st_ctimespec = 10; // Time of last status change
+    // Use pb_timespec for time fields (for systems with high resolution time)
+    pb_timespec st_atimespec = 8;  // Time of last access
+    pb_timespec st_mtimespec = 9;  // Time of last data modification
+    pb_timespec st_ctimespec = 10; // Time of last status change
 
     int64 st_size = 11;         // File size in bytes
     int64 st_blocks = 12;       // Blocks allocated for file
@@ -695,8 +695,8 @@ message pb_es_event_lookup_t {
 
 message pb_es_event_utimpb_es_t {
     pb_es_file_t target = 1;
-    Timespec atime = 2;
-    Timespec mtime = 3;
+    pb_timespec atime = 2;
+    pb_timespec mtime = 3;
 }
 
 message pb_es_event_clone_t {
@@ -1387,7 +1387,7 @@ message pb_es_events_t {
 
 message pb_es_message_t {
     uint32 version = 1;
-    google.protobuf.Timestamp time = 2;
+    pb_timespec time = 2;
     uint64 mach_time = 3;
     uint64 deadline = 4;
     pb_es_process_t process = 5;
