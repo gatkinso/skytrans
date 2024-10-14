@@ -42,9 +42,9 @@ message pb_statfs {
     int64 f_flags = 14;                     // Copy of mount exported flags
     repeated int64 f_reserved2 = 15;        // Reserved for future use (2 elements)
     
-    string f_fstypename = 16;               // Filesystem type name
-    string f_mntonname = 17;                // Directory on which mounted
-    string f_mntfromname = 18;              // Mounted filesystem
+    pb_es_string_token_t f_fstypename = 16;               // Filesystem type name
+    pb_es_string_token_t f_mntonname = 17;                // Directory on which mounted
+    pb_es_string_token_t f_mntfromname = 18;              // Mounted filesystem
 
     int32 f_reserved3 = 19;                 // For alignment
     repeated int64 f_reserved4 = 20;        // For future use (4 elements)
@@ -387,8 +387,8 @@ enum pb_es_auth_result_t {
 
 message pb_es_signed_file_info_t {
     pb_es_cd_hash_t cdhash = 1;
-    string signing_id = 2;
-    string team_id = 3;
+    pb_es_string_token_t signing_id = 2;
+    pb_es_string_token_t team_id = 3;
 }
 
 message pb_es_thread_state_t {
@@ -1068,30 +1068,30 @@ message pb_es_event_authorization_judgement_t {
     pb_audit_token_t petitioner_token = 6;  // Available in message versions >= 8
 }
 
-// Define common types
-message pb_es_od_member_id_t {
-    enum MemberType {
-        UUID = 0;
-        NAME = 1;
-    }
+enum pb_es_od_member_type_t {
+	ES_OD_MEMBER_TYPE_USER_NAME = 0;
+	ES_OD_MEMBER_TYPE_USER_UUID = 1;
+	ES_OD_MEMBER_TYPE_GROUP_UUID = 2;
+}
 
-    MemberType member_type = 1;
+message pb_uuid_t {
+    // TODO char 16
+}
+
+// Define common types
+message pb_es_od_member_id_t { //TODO this is an array
+    pb_es_od_member_type_t member_type = 1;
     oneof member_value {
-        string uuid = 2;
-        string name = 3;
+        pb_uuid_t uuid = 2;
+        pb_es_string_token_t name = 3;
     }
 }
 
 message pb_es_od_member_id_array_t {
-    enum MemberType {
-        UUID = 0;
-        NAME = 1;
-    }
-
-    MemberType member_type = 1;
+    pb_es_od_member_type_t member_type = 1;
     uint32 member_count = 2;
-    oneof member_array {
-        pb_es_string_token_t uuids = 3; // GJA
+    oneof member_array {  //TODO this is an array
+        pb_uuid_t uuids = 3; // GJA
         pb_es_string_token_t names = 4; // GJA
     }
 }
@@ -1099,139 +1099,151 @@ message pb_es_od_member_id_array_t {
 message pb_es_event_od_group_add_t {
     pb_es_process_t instigator = 1;
     int32 error_code = 2;
-    string group_name = 3;
+    pb_es_string_token_t group_name = 3;
     pb_es_od_member_id_t member = 4;
-    string node_name = 5;
-    string db_path = 6;
+    pb_es_string_token_t node_name = 5;
+    pb_es_string_token_t db_path = 6;
     pb_audit_token_t instigator_token = 7;
 }
 
 message pb_es_event_od_group_remove_t {
     pb_es_process_t instigator = 1;
     int32 error_code = 2;
-    string group_name = 3;
+    pb_es_string_token_t group_name = 3;
     pb_es_od_member_id_t member = 4;
-    string node_name = 5;
-    string db_path = 6;
+    pb_es_string_token_t node_name = 5;
+    pb_es_string_token_t db_path = 6;
     pb_audit_token_t instigator_token = 7;
 }
 
 message pb_es_event_od_group_set_t {
     pb_es_process_t instigator = 1;
     int32 error_code = 2;
-    string group_name = 3;
+    pb_es_string_token_t group_name = 3;
     pb_es_od_member_id_array_t members = 4;
-    string node_name = 5;
-    string db_path = 6;
+    pb_es_string_token_t node_name = 5;
+    pb_es_string_token_t db_path = 6;
     pb_audit_token_t instigator_token = 7;
 }
 
 message pb_es_event_od_modify_password_t {
     pb_es_process_t instigator = 1;
     int32 error_code = 2;
-    string account_name = 3;
-    string node_name = 4;
-    string db_path = 5;
+    pb_es_string_token_t account_name = 3;
+    pb_es_string_token_t node_name = 4;
+    pb_es_string_token_t db_path = 5;
     pb_audit_token_t instigator_token = 6;
 }
 
 message pb_es_event_od_disable_user_t {
     pb_es_process_t instigator = 1;
     int32 error_code = 2;
-    string user_name = 3;
-    string node_name = 4;
-    string db_path = 5;
+    pb_es_string_token_t user_name = 3;
+    pb_es_string_token_t node_name = 4;
+    pb_es_string_token_t db_path = 5;
     pb_audit_token_t instigator_token = 6;
 }
 
 message pb_es_event_od_enable_user_t {
     pb_es_process_t instigator = 1;
     int32 error_code = 2;
-    string user_name = 3;
-    string node_name = 4;
-    string db_path = 5;
+    pb_es_string_token_t user_name = 3;
+    pb_es_string_token_t node_name = 4;
+    pb_es_string_token_t db_path = 5;
     pb_audit_token_t instigator_token = 6;
 }
 
 message pb_es_event_od_attribute_value_add_t {
     pb_es_process_t instigator = 1;
     int32 error_code = 2;
-    string record_name = 3;
-    string attribute_name = 4;
-    string attribute_value = 5;
-    string node_name = 6;
-    string db_path = 7;
+    pb_es_string_token_t record_name = 3;
+    pb_es_string_token_t attribute_name = 4;
+    pb_es_string_token_t attribute_value = 5;
+    pb_es_string_token_t node_name = 6;
+    pb_es_string_token_t db_path = 7;
     pb_audit_token_t instigator_token = 8;
 }
 
 message pb_es_event_od_attribute_value_remove_t {
     pb_es_process_t instigator = 1;
     int32 error_code = 2;
-    string record_name = 3;
-    string attribute_name = 4;
-    string attribute_value = 5;
-    string node_name = 6;
-    string db_path = 7;
+    pb_es_string_token_t record_name = 3;
+    pb_es_string_token_t attribute_name = 4;
+    pb_es_string_token_t attribute_value = 5;
+    pb_es_string_token_t node_name = 6;
+    pb_es_string_token_t db_path = 7;
     pb_audit_token_t instigator_token = 8;
 }
 
 message pb_es_event_od_attribute_set_t {
     pb_es_process_t instigator = 1;
     int32 error_code = 2;
-    string record_name = 3;
-    string attribute_name = 4;
+    pb_es_string_token_t record_name = 3;
+    pb_es_string_token_t attribute_name = 4;
     uint32 attribute_value_count = 5;
-    repeated string attribute_values = 6;
-    string node_name = 7;
-    string db_path = 8;
+    repeated pb_es_string_token_t attribute_values = 6;
+    pb_es_string_token_t node_name = 7;
+    pb_es_string_token_t db_path = 8;
     pb_audit_token_t instigator_token = 9;
 }
 
 message pb_es_event_od_create_user_t {
     pb_es_process_t instigator = 1;
     int32 error_code = 2;
-    string user_name = 3;
-    string node_name = 4;
-    string db_path = 5;
+    pb_es_string_token_t user_name = 3;
+    pb_es_string_token_t node_name = 4;
+    pb_es_string_token_t db_path = 5;
     pb_audit_token_t instigator_token = 6;
 }
 
 message pb_es_event_od_create_group_t {
     pb_es_process_t instigator = 1;
     int32 error_code = 2;
-    string group_name = 3;
-    string node_name = 4;
-    string db_path = 5;
+    pb_es_string_token_t group_name = 3;
+    pb_es_string_token_t node_name = 4;
+    pb_es_string_token_t db_path = 5;
     pb_audit_token_t instigator_token = 6;
 }
 
 message pb_es_event_od_delete_user_t {
     pb_es_process_t instigator = 1;
     int32 error_code = 2;
-    string user_name = 3;
-    string node_name = 4;
-    string db_path = 5;
+    pb_es_string_token_t user_name = 3;
+    pb_es_string_token_t node_name = 4;
+    pb_es_string_token_t db_path = 5;
     pb_audit_token_t instigator_token = 6;
 }
 
 message pb_es_event_od_delete_group_t {
     pb_es_process_t instigator = 1;
     int32 error_code = 2;
-    string group_name = 3;
-    string node_name = 4;
-    string db_path = 5;
+    pb_es_string_token_t group_name = 3;
+    pb_es_string_token_t node_name = 4;
+    pb_es_string_token_t db_path = 5;
     pb_audit_token_t instigator_token = 6;
 }
 
+enum pb_es_xpc_domain_type_t {
+    ES_XPC_DOMAIN_TYPE_ZERO_UNUSED = 0;
+    ES_XPC_DOMAIN_TYPE_SYSTEM = 1;
+    ES_XPC_DOMAIN_TYPE_USER = 2;
+    ES_XPC_DOMAIN_TYPE_USER_LOGIN = 3;
+    ES_XPC_DOMAIN_TYPE_SESSION = 4;
+    ES_XPC_DOMAIN_TYPE_PID = 5;
+    ES_XPC_DOMAIN_TYPE_MANAGER = 6;
+    ES_XPC_DOMAIN_TYPE_PORT = 7;
+    ES_XPC_DOMAIN_TYPE_GUI = 8;
+}
+
 message pb_es_event_xpc_connect_t {
-    string service_name = 1;
-    string service_domain_type = 2;
+    pb_es_string_token_t service_name = 1;
+    pb_es_xpc_domain_type_t service_domain_type = 2;
 }
 
 message pb_es_event_gatekeeper_user_override_t {
-    string file_path = 1;
+    pb_es_string_token_t file_path = 1;
     pb_es_file_t file = 2;
-    string sha256 = 3;
+    pb_es_string_token_t sha256 = 3;
     pb_es_signed_file_info_t signing_info = 4;
 }
 
