@@ -21,10 +21,14 @@ option go_package = "transport/proto";
 
 import "google/protobuf/any.proto";
 import "stencil.proto";
+import "endpointsecurity.proto";
 import "event.proto";
 
 service Transport {
     rpc Exchange(Request) returns (Response) {}
+    rpc ExchangeCS(stream Request) returns (Response) {}
+    rpc ExchangeSS(Request) returns (stream Response) {}
+    rpc ExchangeBS(stream Request) returns (stream Response) {}
 }
 
 message Metadata {
@@ -36,6 +40,7 @@ message Request {
     Stencil payload = 100;
     repeated google.protobuf.Any impl = 1000;
     repeated Event events = 2000;
+    repeated pb_es_message_t pb_es_messages = 3000;
 }
 
 message Response {

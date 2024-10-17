@@ -19,4 +19,4 @@ export PATH="$PATH:$(go env GOPATH)/bin"
 
 cmake -S skytrans -B build_skytrans/ -D CMAKE_INSTALL_PREFIX=$HOME/apps/skytrans -D CMAKE_PREFIX_PATH="~/apps/EZ/grpc;~/apps/EZ/protobuf;~/apps/EZ/googletest"
 
-cmake --build build_st/ --target install
+cmake --build build_skytrans/ --target install
