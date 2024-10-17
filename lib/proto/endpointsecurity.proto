@@ -125,7 +125,6 @@ enum pb_es_result_type_t {
 	PB_ES_RESULT_TYPE_FLAGS = 1;
 }
 
-// Define the enum in Protobuf
 enum pb_es_event_t {
     // The following events are available beginning in macOS 10.15
     PB_ES_EVENT_TYPE_AUTH_EXEC = 0;
@@ -625,17 +624,17 @@ message pb_es_event_get_task_t {
 
 message pb_es_event_get_task_read_t {
     pb_es_process_t target = 1;               // The process associated with the event
-    pb_es_event_get_task_t type = 2;             // Type indicating how the task port is obtained (available if message version >= 5)
+    pb_es_get_task_type_t type = 2;             // Type indicating how the task port is obtained (available if message version >= 5)
 }
 
 message pb_es_event_get_task_inspect_t {
     pb_es_process_t target = 1;               // The process for which the task inspect port will be retrieved
-    pb_es_event_get_task_t type = 2;             // Type indicating how the task port is obtained (available if message version >= 5)
+    pb_es_get_task_type_t type = 2;             // Type indicating how the task port is obtained (available if message version >= 5)
 }
 
 message pb_es_event_get_task_name_t {
     pb_es_process_t target = 1;               // The process for which the task name port will be retrieved
-    pb_es_event_get_task_t type = 2;             // Type indicating how the task port is obtained (available if message version >= 5)
+    pb_es_get_task_type_t type = 2;             // Type indicating how the task port is obtained (available if message version >= 5)
 }
 
 message pb_es_event_getattrlist_t {
@@ -669,7 +668,7 @@ message pb_es_event_lookup_t {
     pb_es_string_token_t relative_target = 2;
 }
 
-message pb_es_event_utimpb_es_t {
+message pb_es_event_utimes_t {
     pb_es_file_t target = 1;
     pb_timespec atime = 2;
     pb_timespec mtime = 3;
@@ -729,7 +728,7 @@ message pb_es_event_setacl_t {
     pb_es_file_t target = 1;
     pb_es_set_or_clear_t set_or_clear = 2;
     oneof acl {
-        pb_es_acl_t set = 3;  // Replace pb_es_acl_t with the actual type if needed
+        pb_es_acl_t set = 3; 
     }
     bytes reserved = 4;  // reserved[64]
 }
@@ -1301,7 +1300,7 @@ message pb_es_events_t {
         pb_es_event_proc_suspend_resume_t proc_suspend_resume = 36;
         pb_es_event_pty_close_t pty_close = 37;
         pb_es_event_pty_grant_t pty_grant = 38;
-        pb_es_event_readdir_t readdi = 39;
+        pb_es_event_readdir_t readdir = 39;
         pb_es_event_readlink_t readlink = 40;
         pb_es_event_remote_thread_create_t remote_thread_create = 41;
         pb_es_event_remount_t remount = 42;
@@ -1328,7 +1327,7 @@ message pb_es_events_t {
         pb_es_event_uipc_connect_t uipc_connect = 63;
         pb_es_event_unlink_t unlink = 64;
         pb_es_event_unmount_t unmount = 65;
-        pb_es_event_utimpb_es_t utimes = 66;
+        pb_es_event_utimes_t utimes = 66;
         pb_es_event_write_t write = 67;
 
         /**
