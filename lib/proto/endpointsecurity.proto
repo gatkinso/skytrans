@@ -999,16 +999,18 @@ message pb_es_event_su_t {
     uint32 from_uid = 3;
     pb_es_string_token_t from_username = 4;
     bool has_to_uid_flag = 5;  //rename to prevent collision with generated code
+    uint64 argc = 6;
     oneof to_uid_union {
-        uint32 to_uid = 6;
+        uint32 to_uid = 7;
     }
-    pb_es_string_token_t to_username = 7;
-    pb_es_string_token_t shell = 8;
-    repeated pb_es_string_token_t argv = 9;
-    repeated pb_es_string_token_t env = 10;
+    pb_es_string_token_t to_username = 8;
+    pb_es_string_token_t shell = 9;
+    repeated pb_es_string_token_t argv = 10;
+    repeated pb_es_string_token_t env = 11;
+    uint64 env_count = 12;
 }
 
-message pb_es_sudo_reject_info {
+message pb_es_sudo_reject_info_t {
     pb_es_string_token_t plugin_name = 1;
     pb_es_sudo_plugin_type_t plugin_type = 2;  // Define pb_es_sudo_plugin_type_t as needed
     pb_es_string_token_t failure_message = 3;
@@ -1016,7 +1018,7 @@ message pb_es_sudo_reject_info {
 
 message pb_es_event_sudo_t {
     bool success = 1;
-    pb_es_event_sudo_t reject_info = 2;  // Nullable
+    pb_es_sudo_reject_info_t reject_info = 2;  // Nullable
     bool has_from_uid_flag = 3;  //renamed to prevent name collision with generated code
     oneof from_uid_union {
         uint32 from_uid = 4;
