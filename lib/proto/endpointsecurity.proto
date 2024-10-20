@@ -1380,7 +1380,7 @@ message pb_es_process_t {
     int32 session_id = 5;
     uint32 codesigning_flags = 6;
     bool is_platform_binary = 7;
-    bool is_pb_es_client = 8;
+    bool is_es_client = 8;
     pb_es_cd_hash_t cdhash = 9;
     pb_es_string_token_t signing_id = 10;
     pb_es_string_token_t team_id = 11;

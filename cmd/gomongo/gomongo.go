@@ -12,11 +12,14 @@ import (
 	pb "gotrans/skytransproto/transport/proto"
 )
 
-var execCollection *mongo.Collection
-var forkCollection *mongo.Collection
-var exitCollection *mongo.Collection
-var actorCollection *mongo.Collection
-var itemCollection *mongo.Collection
+//var execCollection *mongo.Collection
+//var forkCollection *mongo.Collection
+//var exitCollection *mongo.Collection
+//var actorCollection *mongo.Collection
+//var itemCollection *mongo.Collection
+
+var esNotifyCollection *mongo.Collection
+var esAuthCollection *mongo.Collection
 
 var addr string = "0.0.0.0:1967"
 
@@ -25,7 +28,7 @@ type Server struct {
 }
 
 func main() {
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://root:root@localhost:27017/"))
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://mongo-pm1:27017/"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,11 +38,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	execCollection = client.Database("anubixdb").Collection("exec")
-	forkCollection = client.Database("anubixdb").Collection("fork")
-	exitCollection = client.Database("anubixdb").Collection("exit")
-	actorCollection = client.Database("anubixdb").Collection("actor")
-	itemCollection = client.Database("anubixdb").Collection("item")
+	//execCollection = client.Database("anubixdb").Collection("exec")
+	//forkCollection = client.Database("anubixdb").Collection("fork")
+	//exitCollection = client.Database("anubixdb").Collection("exit")
+	//actorCollection = client.Database("anubixdb").Collection("actor")
+	//itemCollection = client.Database("anubixdb").Collection("item")
+
+	esNotifyCollection = client.Database("anubixdb").Collection("notify")
+	esAuthCollection = client.Database("anubixdb").Collection("auth")
 
 	lis, err := net.Listen("tcp", addr)
 

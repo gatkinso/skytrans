@@ -8,7 +8,6 @@ import (
 	"log"
 	"time"
 
-	es "github.com/gatkinso/gomac/endpointsecurity"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"google.golang.org/grpc/codes"
@@ -16,29 +15,39 @@ import (
 )
 
 func (s *Server) DoTransactionEvent(ctx context.Context, msg *pb.Request) error {
+	if len(msg.GetPbEsMessages()) == 0 {
+		return nil
+	}
+
 	start := time.Now()
 
 	id := msg.GetMeta().Data.Uint64Values["req_id"]
 
-	for _, item := range msg.GetEvents() {
+	var fmtStr string
+	var setStr bool
+	setStr = true
 
+	for _, item := range msg.GetPbEsMessages() {
 		var res *mongo.InsertOneResult
 		var err error
 
 		res = nil
 		err = nil
 
-		switch item.Esevent.EventType {
-		case uint32(es.ES_EVENT_TYPE_NOTIFY_EXEC):
-			res, err = execCollection.InsertOne(ctx, item.Esevent.Exec)
+		switch item.ActionType {
+		case pb.PbEsActionTypeT_PB_ES_ACTION_TYPE_AUTH:
+			res, err = esAuthCollection.InsertOne(ctx, item)
+			if setStr {
+				fmtStr = "(%d) Auth count   [%d] \tin %d ms. Rate: %d/sec"
+				setStr = false
+			}
 
-		case uint32(es.ES_EVENT_TYPE_NOTIFY_FORK):
-			res, err = forkCollection.InsertOne(ctx, item.Esevent.Fork)
-
-		case uint32(es.ES_EVENT_TYPE_NOTIFY_EXIT):
-			res, err = exitCollection.InsertOne(ctx, item.Esevent.Exit)
-
-		case uint32(es.ES_EVENT_TYPE_LAST + 1):
+		case pb.PbEsActionTypeT_PB_ES_ACTION_TYPE_NOTIFY:
+			res, err = esNotifyCollection.InsertOne(ctx, item)
+			if setStr {
+				fmtStr = "(%d) Notify count (%d) \tin %d ms. Rate: %d/sec"
+				setStr = false
+			}
 
 		default:
 			continue
@@ -50,21 +59,11 @@ func (s *Server) DoTransactionEvent(ctx context.Context, msg *pb.Request) error 
 				fmt.Sprintf("Internal error: %v\n", err),
 			)
 		}
-		_, err = actorCollection.InsertOne(ctx, item.Esevent.Process)
-
-		if err != nil {
-			return status.Errorf(
-				codes.Internal,
-				fmt.Sprintf("Internal error: %v\n", err),
-			)
-		}
 	}
 
 	duration := time.Since(start)
-
 	secs := float32(duration.Milliseconds()) / 1000
-
-	log.Printf("Finshed Batch (%d) of count (%d) in %v ms. Rate: %v", id, len(msg.GetEvents()), duration.Milliseconds(), float32(len(msg.GetEvents()))/secs)
+	log.Printf(fmtStr, id, len(msg.GetPbEsMessages()), duration.Milliseconds(), int32(float32(len(msg.GetPbEsMessages()))/secs))
 
 	return nil
 }
