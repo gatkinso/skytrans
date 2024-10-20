@@ -1408,4 +1408,6 @@ message pb_es_message_t {
     pb_es_thread_t thread = 12;
     uint64 global_seq_num = 13;
     repeated uint64 opaque = 14;
+
+    uint64 req_id = 15;  // Added, not in ESF
 }

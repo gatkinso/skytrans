@@ -12,14 +12,9 @@ import (
 	pb "gotrans/skytransproto/transport/proto"
 )
 
-//var execCollection *mongo.Collection
-//var forkCollection *mongo.Collection
-//var exitCollection *mongo.Collection
-//var actorCollection *mongo.Collection
-//var itemCollection *mongo.Collection
-
 var esNotifyCollection *mongo.Collection
 var esAuthCollection *mongo.Collection
+var esMetaCollection *mongo.Collection
 
 var addr string = "0.0.0.0:1967"
 
@@ -38,14 +33,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//execCollection = client.Database("anubixdb").Collection("exec")
-	//forkCollection = client.Database("anubixdb").Collection("fork")
-	//exitCollection = client.Database("anubixdb").Collection("exit")
-	//actorCollection = client.Database("anubixdb").Collection("actor")
-	//itemCollection = client.Database("anubixdb").Collection("item")
-
 	esNotifyCollection = client.Database("anubixdb").Collection("notify")
 	esAuthCollection = client.Database("anubixdb").Collection("auth")
+	esMetaCollection = client.Database("anubixdb").Collection("meta")
 
 	lis, err := net.Listen("tcp", addr)
 
